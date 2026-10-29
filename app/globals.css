@@ -2789,3 +2789,13 @@ body {
   outline: 1px solid rgba(217,154,78,0.75);
   outline-offset: 2px;
 }
+
+/* ---------- Seasons at the window (autumn is the native key) ---------- */
+.window-sky, .window-haze, .window-skyline { transition: filter 6000ms cubic-bezier(0.22, 1, 0.36, 1); }
+:root[data-season="winter"] .window-sky { filter: hue-rotate(18deg) saturate(0.7) brightness(1.06); }
+:root[data-season="winter"] .window-haze { filter: saturate(0.6) brightness(1.1); }
+:root[data-season="winter"] .window-skyline { filter: saturate(0.7); }
+:root[data-season="spring"] .window-sky { filter: hue-rotate(-12deg) saturate(1.08) brightness(1.04); }
+:root[data-season="spring"] .window-haze { filter: hue-rotate(-20deg) saturate(1.05); }
+:root[data-season="summer"] .window-sky { filter: saturate(1.2) brightness(1.08); }
+:root[data-season="summer"] .window-haze { filter: saturate(1.15); }
