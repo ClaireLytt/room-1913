@@ -4,7 +4,7 @@ import SessionRail from "../components/SessionRail";
 import Portrait from "../components/Portrait";
 import WindowDateChip from "../components/WindowDateChip";
 
-const ORDER: CharacterId[] = ["jung", "freud", "adler", "lacan"];
+const ORDER: CharacterId[] = ["jung", "freud", "adler", "lacan", "seligman"];
 
 export default function Landing() {
   return (

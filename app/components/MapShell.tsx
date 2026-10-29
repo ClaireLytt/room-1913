@@ -17,6 +17,7 @@ const PRIMARY_COLOR: Record<CharacterId, string> = {
   jung: "rgba(174,140,210,0.95)",
   adler: "rgba(150,180,180,0.92)",
   lacan: "rgba(210,210,220,0.85)",
+  seligman: "rgba(201,179,106,0.92)",
 };
 
 export default function MapShell() {

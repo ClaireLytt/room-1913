@@ -35,6 +35,13 @@ const Glyph = {
       <path d="M9 5v12M15 7v12" />
     </svg>
   ),
+  garden: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4">
+      <path d="M12 21V11" />
+      <path d="M12 11c0-4 3-7 7-7 0 4-3 7-7 7Z" />
+      <path d="M12 14c0-3-2.5-5-5.5-5 0 3 2.5 5 5.5 5Z" />
+    </svg>
+  ),
 };
 
 const ITEMS: RailItem[] = [
@@ -42,6 +49,7 @@ const ITEMS: RailItem[] = [
   { id: "table",    label: "ROUND TABLE", zh: "圆桌讨论",   href: "/room",  glyph: Glyph.table },
   { id: "archive",  label: "ARCHIVE",     zh: "档案室",     href: "/archive", glyph: Glyph.archive },
   { id: "map",      label: "MAP",         zh: "潜意识地图", href: "/map",    glyph: Glyph.map },
+  { id: "garden",   label: "GARDEN",      zh: "好消息花园", href: "/garden", glyph: Glyph.garden },
 ];
 
 export default function SessionRail({ active }: { active?: string }) {
