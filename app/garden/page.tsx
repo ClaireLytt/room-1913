@@ -9,6 +9,7 @@ import {
   Pillar,
   GoodNews,
   scoreAnswer,
+  todayKey,
 } from "../lib/perma";
 import {
   GoodThing,
@@ -179,6 +180,7 @@ const NAV = [
   { id: "strengths", zh: "优势" },
   { id: "questions", zh: "五问" },
   { id: "bottle", zh: "瓶中信" },
+  { id: "capsule", zh: "时间胶囊" },
   { id: "suitcase", zh: "搬家" },
 ];
 
@@ -305,6 +307,34 @@ export default function Garden() {
     reader.readAsText(file);
   };
 
+  // --- time capsule ---
+  interface CapsuleView {
+    id: string; createdAt: number; openAt: number; sealed: boolean; text?: string;
+  }
+  const [capsules, setCapsules] = useState<CapsuleView[]>([]);
+  const [capsuleText, setCapsuleText] = useState("");
+  const [capsuleDays, setCapsuleDays] = useState(90);
+  const [capsuleBusy, setCapsuleBusy] = useState(false);
+
+  const sealCapsule = async () => {
+    const text = capsuleText.trim();
+    if (!text || capsuleBusy) return;
+    setCapsuleBusy(true);
+    try {
+      const res = await fetch("/api/capsule", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text, clientId, days: capsuleDays }),
+      });
+      const d = await res.json();
+      if (d.sealed) {
+        setCapsules(prev => [...prev, d.sealed].sort((a, b) => a.openAt - b.openAt));
+        setCapsuleText("");
+      }
+    } catch {}
+    setCapsuleBusy(false);
+  };
+
   // --- three good things ---
   const [things, setThings] = useState<GoodThing[]>(
     () => [0, 1, 2].map(() => ({ text: "", why: "" }))
@@ -354,7 +384,28 @@ export default function Garden() {
         }
       })
       .catch(() => {});
+    fetch(`/api/capsule?clientId=${encodeURIComponent(id)}`)
+      .then(r => r.json())
+      .then(d => { if (Array.isArray(d.capsules)) setCapsules(d.capsules); })
+      .catch(() => {});
   }, []);
+
+  // --- anniversary: a note from a month (or a week) ago resurfaces ---
+  const anniversary = (() => {
+    const fmt = (dt: Date) => todayKey(dt);
+    const monthAgo = new Date(); monthAgo.setMonth(monthAgo.getMonth() - 1);
+    const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7);
+    for (const [day, label] of [
+      [fmt(monthAgo), "一个月前的今天"],
+      [fmt(weekAgo), "一周前的今天"],
+    ] as const) {
+      const note = history.find(n => n.day === day);
+      if (note) return { label, text: note.text };
+      const entry = entries.find(e => e.day === day);
+      if (entry) return { label, text: entry.items[0]?.text ?? "" };
+    }
+    return null;
+  })();
 
   const setThing = (i: number, field: keyof GoodThing, v: string) => {
     setThings(prev => prev.map((t, j) => (j === i ? { ...t, [field]: v } : t)));
@@ -451,6 +502,11 @@ export default function Garden() {
           {lampEcho > 0 && (
             <p className="garden-echo font-serif">
               你不在的时候，有人为你的好消息点亮了 {lampEcho} 盏灯。
+            </p>
+          )}
+          {anniversary && anniversary.text && (
+            <p className="garden-echo garden-echo-anniv font-serif">
+              {anniversary.label}，你写下过：“{anniversary.text}”
             </p>
           )}
         </header>
@@ -760,6 +816,63 @@ export default function Garden() {
                 再投一只
               </button>
             </div>
+          )}
+        </section>
+
+        {/* ----- time capsule ----- */}
+        <section className="garden-block" id="capsule">
+          <h2 className="garden-block-title font-type">TIME CAPSULE · 时间胶囊</h2>
+          <p className="garden-hint font-serif ink-fade" style={{ margin: "0 0 14px" }}>
+            给未来的自己写一封信。封好之后，不到日子谁也打不开——包括你。
+          </p>
+          <div className="garden-share">
+            <textarea
+              className="garden-input font-serif"
+              value={capsuleText}
+              onChange={e => setCapsuleText(e.target.value)}
+              maxLength={600}
+              rows={3}
+              placeholder="亲爱的未来的我，现在……"
+            />
+            <div className="garden-capsule-days">
+              {[{ d: 90, zh: "三个月后" }, { d: 180, zh: "半年后" }, { d: 365, zh: "一年后" }].map(o => (
+                <button
+                  key={o.d}
+                  className={`garden-nav-item font-type ${capsuleDays === o.d ? "garden-nav-item-on" : ""}`}
+                  onClick={() => setCapsuleDays(o.d)}
+                >
+                  {o.zh}
+                </button>
+              ))}
+            </div>
+            <button
+              className="garden-btn font-type"
+              onClick={sealCapsule}
+              disabled={!capsuleText.trim() || capsuleBusy}
+            >
+              {capsuleBusy ? "SEALING…" : "SEAL · 落蜡封存"}
+            </button>
+          </div>
+          {capsules.length > 0 && (
+            <ul className="garden-capsule-list">
+              {capsules.map(c => (
+                <li key={c.id} className="garden-card">
+                  {c.sealed ? (
+                    <>
+                      <p className="garden-card-tag font-type">SEALED · 开启于 {todayKey(new Date(c.openAt))}</p>
+                      <p className="garden-capsule-wax" aria-hidden />
+                    </>
+                  ) : (
+                    <>
+                      <p className="garden-card-tag font-type">
+                        OPENED · 写于 {todayKey(new Date(c.createdAt))}
+                      </p>
+                      <p className="garden-card-text font-serif">{c.text}</p>
+                    </>
+                  )}
+                </li>
+              ))}
+            </ul>
           )}
         </section>
 

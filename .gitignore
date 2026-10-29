@@ -11,3 +11,4 @@ out
 # local good-news store
 /data/goodnews.json
 /data/bottles.json
+/data/capsules.json

@@ -2635,3 +2635,26 @@ body {
 .garden-suitcase-actions .garden-btn { margin-top: 0; }
 .garden-suitcase-import { display: inline-block; cursor: pointer; }
 .garden-suitcase-import input { display: none; }
+
+/* Breathing respects reduced motion: the ring holds still and breathes in light */
+@media (prefers-reduced-motion: reduce) {
+  .breath-ring { transform: none; }
+  .breath-inhale { transition: opacity 4000ms ease; transform: none; opacity: 1; }
+  .breath-hold   { transition: opacity 600ms ease;  transform: none; opacity: 1; }
+  .breath-exhale { transition: opacity 8000ms ease; transform: none; opacity: 0.35; }
+}
+
+/* ---------- Garden: time capsule + anniversary ---------- */
+.garden-echo-anniv { color: rgba(232,220,196,0.72); text-shadow: none; }
+.garden-capsule-days { display: flex; gap: 8px; margin-top: 12px; }
+.garden-capsule-days .garden-nav-item { cursor: pointer; background: none; }
+.garden-nav-item-on { color: rgba(232,220,196,0.95); border-color: rgba(217,154,78,0.6); background: rgba(217,154,78,0.1); }
+.garden-capsule-list { list-style: none; margin: 18px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.garden-capsule-wax {
+  width: 26px;
+  height: 26px;
+  margin: 4px 0 2px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, rgba(184,122,74,0.95), rgba(120,62,40,0.9));
+  box-shadow: 0 0 10px rgba(184,122,74,0.3);
+}
