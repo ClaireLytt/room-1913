@@ -166,6 +166,7 @@ function Lamp({ streak }: { streak: number }) {
 import Breathing from "../components/Breathing";
 import { packSuitcase, unpackSuitcase, suitcaseFilename } from "../lib/porter";
 import { loadFlowLog } from "../lib/flow";
+import { downloadMonthCard } from "../lib/monthcard";
 
 const CLIENT_KEY = "room1913.garden.client.v1";
 const ANSWERS_KEY = "room1913.garden.answers.v1";
@@ -402,6 +403,7 @@ export default function Garden() {
 
   // --- lamp echo ---
   const [lampEcho, setLampEcho] = useState(0);
+  const [flowWeek, setFlowWeek] = useState({ count: 0, min: 0 });
 
   // --- reply to the exchanged note ---
   const [replyText, setReplyText] = useState("");
@@ -427,6 +429,14 @@ export default function Garden() {
       }
     } catch {}
     setEntries(loadGoodThings());
+    try {
+      const since = Date.now() - 7 * 24 * 60 * 60 * 1000;
+      let count = 0, min = 0;
+      for (const f of loadFlowLog()) {
+        if (f.createdAt >= since) { count++; min += f.actualMin; }
+      }
+      setFlowWeek({ count, min });
+    } catch {}
     try {
       const op = JSON.parse(localStorage.getItem(OPTIMISM_KEY) ?? "[]");
       if (Array.isArray(op)) setPicksState(op.filter(v => typeof v === "boolean"));
@@ -516,12 +526,7 @@ export default function Garden() {
     const since = Date.now() - WEEK_MS;
     const news = history.filter(n => n.createdAt >= since);
     const nights = entries.filter(e => e.createdAt >= since).length;
-    let flowCount = 0, flowMin = 0;
-    try {
-      for (const f of loadFlowLog()) {
-        if (f.createdAt >= since) { flowCount++; flowMin += f.actualMin; }
-      }
-    } catch {}
+    const { count: flowCount, min: flowMin } = flowWeek;
     return { news, nights, flowCount, flowMin };
   })();
   const weekHasAnything =
@@ -803,6 +808,12 @@ export default function Garden() {
                 你的花坛 · 每一朵都是一条分享过的好消息
               </p>
               <Calendar history={history} />
+              <button
+                className="garden-game-back font-type"
+                onClick={() => downloadMonthCard(history, entries, streak)}
+              >
+                把这个月装进一张卡片 ›
+              </button>
             </div>
           )}
         </section>
