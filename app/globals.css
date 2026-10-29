@@ -2761,3 +2761,31 @@ body {
   letter-spacing: 0.26em;
   color: rgba(217,154,78,0.6);
 }
+
+/* ---------- Daily line + focus visibility ---------- */
+.daily-line {
+  margin: 18px 0 0;
+  font-size: 14px;
+  line-height: 1.8;
+  color: rgba(232,220,196,0.8);
+  text-align: right;
+}
+.daily-line-who {
+  display: block;
+  margin-top: 6px;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: rgba(217,154,78,0.6);
+}
+.garden-btn:focus-visible,
+.garden-game-option:focus-visible,
+.garden-game-back:focus-visible,
+.garden-nav-item:focus-visible,
+.garden-lamp-btn:focus-visible,
+.garden-cal-day-bloom:focus-visible,
+.salon-scene-head:focus-visible,
+.breath-exit:focus-visible,
+.garden-cal-nav:focus-visible {
+  outline: 1px solid rgba(217,154,78,0.75);
+  outline-offset: 2px;
+}

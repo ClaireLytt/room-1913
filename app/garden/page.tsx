@@ -82,6 +82,7 @@ function Calendar({ history }: { history: GoodNews[] }) {
               style={note ? { color: PILLAR_COLOR[note.pillar] } : undefined}
               onClick={() => note && setPicked(picked === note ? null : note)}
               disabled={!note}
+              aria-label={note ? `${key(d)} · ${PILLAR_LABEL[note.pillar].zh}的好消息` : undefined}
             >
               {note ? "✻" : d}
             </button>

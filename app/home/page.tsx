@@ -3,6 +3,7 @@ import { CHARACTERS, CharacterId } from "../characters";
 import SessionRail from "../components/SessionRail";
 import Portrait from "../components/Portrait";
 import WindowDateChip from "../components/WindowDateChip";
+import DailyLine from "../components/DailyLine";
 
 const ORDER: CharacterId[] = ["jung", "freud", "adler", "lacan", "seligman", "csik"];
 
@@ -40,6 +41,7 @@ export default function Landing() {
 
       <aside className="archive-window">
         <WindowDateChip />
+        <DailyLine />
         <p className="window-quote font-serif italic">
           "What troubles you tonight?"
           <span className="window-quote-zh ink-fade font-serif">今晚，你想谈谈什么？</span>

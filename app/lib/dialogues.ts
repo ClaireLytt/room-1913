@@ -95,6 +95,17 @@ export const SCENES: DialogueScene[] = [
   },
 ];
 
+// One line a day on the door: the salon corpus, rotated deterministically
+// by date so every visitor sees the same line on the same day.
+export function dailyLine(now = new Date()): { text: string; who: CharacterId } {
+  const pool = [...SCENES, ...SCENES_CLASSIC].flatMap(s => s.turns);
+  const dayIndex = Math.floor(
+    (now.getTime() - now.getTimezoneOffset() * 60000) / 86400000
+  );
+  const turn = pool[dayIndex % pool.length];
+  return { text: turn.text, who: turn.who };
+}
+
 // Volume II — the four of 1913, by candlelight.
 export const SCENES_CLASSIC: DialogueScene[] = [
   {
