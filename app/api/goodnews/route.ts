@@ -46,7 +46,13 @@ export async function GET(req: Request) {
     : [];
   const mine = history.find(n => n.day === today) ?? null;
   const match = mine ? findMatch(list, mine.pillar, clientId) : null;
-  return NextResponse.json({ today, mine, match, history });
+  // tonight across all visitors: how many notes, which pillar bloomed most
+  const todays = list.filter(n => n.day === today);
+  const tally = new Map<Pillar, number>();
+  for (const n of todays) tally.set(n.pillar, (tally.get(n.pillar) ?? 0) + 1);
+  const top = [...tally.entries()].sort((a, b) => b[1] - a[1])[0];
+  const tonight = { count: todays.length, topPillar: top ? top[0] : null };
+  return NextResponse.json({ today, mine, match, history, tonight });
 }
 
 export async function POST(req: Request) {

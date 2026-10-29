@@ -174,6 +174,7 @@ const STRENGTHS_KEY = "room1913.garden.strengths.v1";
 const LAMPSEEN_KEY = "room1913.garden.lampseen.v1";
 const GREETED_KEY = "room1913.garden.greeted.v1";
 const REPLYSEEN_KEY = "room1913.garden.replyseen.v1";
+const CAPSEEN_KEY = "room1913.garden.capseen.v1";
 
 const NAV = [
   { id: "week", zh: "本周" },
@@ -359,6 +360,10 @@ export default function Garden() {
   const [replySent, setReplySent] = useState(false);
   const [replyEcho, setReplyEcho] = useState(0);
 
+  // --- tonight across all visitors + capsule knock ---
+  const [tonight, setTonight] = useState<{ count: number; topPillar: Pillar | null } | null>(null);
+  const [capsuleKnock, setCapsuleKnock] = useState(false);
+
   // --- presence + first-visit greeting ---
   const [others, setOthers] = useState(0);
   const [greeting, setGreeting] = useState(false);
@@ -384,6 +389,7 @@ export default function Garden() {
       .then(r => r.json())
       .then(d => {
         if (d.mine) { setMine(d.mine); setMatch(d.match ?? null); }
+        if (d.tonight) setTonight(d.tonight);
         if (Array.isArray(d.history)) {
           setHistory(d.history);
           const lit = d.history.reduce(
@@ -405,7 +411,17 @@ export default function Garden() {
       .catch(() => {});
     fetch(`/api/capsule?clientId=${encodeURIComponent(id)}`)
       .then(r => r.json())
-      .then(d => { if (Array.isArray(d.capsules)) setCapsules(d.capsules); })
+      .then(d => {
+        if (Array.isArray(d.capsules)) {
+          setCapsules(d.capsules);
+          const open = d.capsules.filter((c: { sealed: boolean }) => !c.sealed).length;
+          try {
+            const seen = Number(localStorage.getItem(CAPSEEN_KEY) ?? "0");
+            if (open > seen) setCapsuleKnock(true);
+            localStorage.setItem(CAPSEEN_KEY, String(open));
+          } catch {}
+        }
+      })
       .catch(() => {});
     try {
       if (!localStorage.getItem(GREETED_KEY)) setGreeting(true);
@@ -565,6 +581,16 @@ export default function Garden() {
           {others > 0 && (
             <p className="garden-presence font-serif ink-fade">
               今晚花园里还有 {others} 位访客。
+            </p>
+          )}
+          {tonight && tonight.count > 1 && tonight.topPillar && (
+            <p className="garden-presence font-serif ink-fade">
+              今晚全体访客共种下 {tonight.count} 朵，开得最多的是{PILLAR_LABEL[tonight.topPillar].zh}。
+            </p>
+          )}
+          {capsuleKnock && (
+            <p className="garden-echo font-serif">
+              <a href="#capsule" className="garden-knock">有一封给你的信到期了，可以拆了。</a>
             </p>
           )}
           <nav className="garden-nav" aria-label="garden sections">

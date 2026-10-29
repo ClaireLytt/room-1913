@@ -2742,3 +2742,7 @@ body {
 .garden-reply-row .garden-input { flex: 1; }
 .garden-reply-row .garden-lamp-btn { margin-top: 0; white-space: nowrap; }
 .garden-reply-line { margin: 8px 0 0; font-size: 14px; color: rgba(159,184,138,0.9); }
+
+/* ---------- Garden: capsule knock ---------- */
+.garden-knock { color: inherit; text-decoration: none; border-bottom: 1px dotted rgba(217,154,78,0.5); }
+.garden-knock:hover { border-bottom-style: solid; }
