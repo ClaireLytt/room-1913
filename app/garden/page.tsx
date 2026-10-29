@@ -211,33 +211,28 @@ export default function Garden() {
   const [matchLit, setMatchLit] = useState(false);
 
   // --- optimism game ---
-  const [picks, setPicks] = useState<boolean[]>(() => {
-    try {
-      const v = JSON.parse(localStorage.getItem(OPTIMISM_KEY) ?? "[]");
-      return Array.isArray(v) ? v.filter(x => typeof x === "boolean") : [];
-    } catch { return []; }
-  });
+  const [picks, setPicksState] = useState<boolean[]>([]);
+  const setPicks = (updater: (prev: boolean[]) => boolean[]) =>
+    setPicksState(prev => {
+      const next = updater(prev);
+      try { localStorage.setItem(OPTIMISM_KEY, JSON.stringify(next)); } catch {}
+      return next;
+    });
   const gameDone = picks.length >= STYLE_ITEMS.length;
   const current = STYLE_ITEMS[picks.length];
   const result = scoreStyle(picks);
 
   // --- character strengths ---
-  const [strengthPicks, setStrengthPicks] = useState<Strength[]>(() => {
-    try {
-      const v = JSON.parse(localStorage.getItem(STRENGTHS_KEY) ?? "[]");
-      return Array.isArray(v) ? v : [];
-    } catch { return []; }
-  });
+  const [strengthPicks, setStrengthPicksState] = useState<Strength[]>([]);
+  const setStrengthPicks = (updater: (prev: Strength[]) => Strength[]) =>
+    setStrengthPicksState(prev => {
+      const next = updater(prev);
+      try { localStorage.setItem(STRENGTHS_KEY, JSON.stringify(next)); } catch {}
+      return next;
+    });
   const strengthsDone = strengthPicks.length >= STRENGTH_CARDS.length;
   const strengthCard = STRENGTH_CARDS[strengthPicks.length];
   const top3 = topStrengths(strengthPicks);
-
-  useEffect(() => {
-    try { localStorage.setItem(OPTIMISM_KEY, JSON.stringify(picks)); } catch {}
-  }, [picks]);
-  useEffect(() => {
-    try { localStorage.setItem(STRENGTHS_KEY, JSON.stringify(strengthPicks)); } catch {}
-  }, [strengthPicks]);
 
   // --- bottle post ---
   const [bottleText, setBottleText] = useState("");
@@ -263,6 +258,12 @@ export default function Garden() {
       }
     } catch {}
     setEntries(loadGoodThings());
+    try {
+      const op = JSON.parse(localStorage.getItem(OPTIMISM_KEY) ?? "[]");
+      if (Array.isArray(op)) setPicksState(op.filter(v => typeof v === "boolean"));
+      const st = JSON.parse(localStorage.getItem(STRENGTHS_KEY) ?? "[]");
+      if (Array.isArray(st)) setStrengthPicksState(st);
+    } catch {}
     fetch(`/api/goodnews?clientId=${encodeURIComponent(id)}`)
       .then(r => r.json())
       .then(d => {
@@ -567,7 +568,7 @@ export default function Garden() {
               <p className="garden-hint font-serif ink-fade">
                 条越满，说明你把挫折解释得越「暂时、局部、非全责」——这正是可以练习的乐观。
               </p>
-              <button className="garden-btn font-type" onClick={() => setPicks([])}>
+              <button className="garden-btn font-type" onClick={() => setPicks(() => [])}>
                 AGAIN · 再来一轮
               </button>
             </div>
@@ -622,7 +623,7 @@ export default function Garden() {
               <p className="garden-hint font-serif ink-fade">
                 这是你的签名优势——塞利格曼说，幸福不在修补短板，而在把它们用在每一天。
               </p>
-              <button className="garden-btn font-type" onClick={() => setStrengthPicks([])}>
+              <button className="garden-btn font-type" onClick={() => setStrengthPicks(() => [])}>
                 AGAIN · 再测一次
               </button>
             </div>
