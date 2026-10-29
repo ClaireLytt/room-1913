@@ -204,7 +204,7 @@ export default function Room() {
       const data = await res.json();
       const turns: Turn[] = Array.isArray(data?.turns) && data.turns.length
         ? data.turns
-        : [{ who: characters[0], text: "…" }];
+        : [{ who: characters[0], text: String(data?.error ?? "…") }];
       const after: Msg[] = [...next];
       for (const t of turns) {
         await typewriter(t, setTyping);
