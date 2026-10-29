@@ -110,6 +110,27 @@ await page("/garden", "GARDEN");
   check("lamp dedupes per visitor", dupLamp.json?.litCount === 1);
 }
 
+// reply: validation, no self-reply, one per visitor
+{
+  const got = await api("GET", `/api/goodnews?clientId=${CLIENT}`);
+  const noteId = got.json.mine.id;
+
+  const empty = await api("POST", "/api/goodnews/reply", { id: noteId, clientId: `${CLIENT}-other` });
+  check("reply rejects empty text", empty.status === 400);
+
+  const self = await api("POST", "/api/goodnews/reply", { id: noteId, clientId: CLIENT, text: "hi" });
+  check("reply refuses your own note", self.status === 400);
+
+  const first = await api("POST", "/api/goodnews/reply", { id: noteId, clientId: `${CLIENT}-other`, text: "smoke: nice one" });
+  check("reply lands on another's note", first.json?.replied === true && !first.json?.already);
+
+  const dup = await api("POST", "/api/goodnews/reply", { id: noteId, clientId: `${CLIENT}-other`, text: "smoke: again" });
+  check("reply is one per visitor", dup.json?.already === true);
+
+  const after = await api("GET", `/api/goodnews?clientId=${CLIENT}`);
+  check("reply visible to the author", after.json?.mine?.replies?.length === 1);
+}
+
 // bottle post: validation and exchange
 {
   const bad = await api("POST", "/api/bottle", { clientId: CLIENT });

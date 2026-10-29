@@ -173,6 +173,7 @@ const OPTIMISM_KEY = "room1913.garden.optimism.v1";
 const STRENGTHS_KEY = "room1913.garden.strengths.v1";
 const LAMPSEEN_KEY = "room1913.garden.lampseen.v1";
 const GREETED_KEY = "room1913.garden.greeted.v1";
+const REPLYSEEN_KEY = "room1913.garden.replyseen.v1";
 
 const NAV = [
   { id: "week", zh: "本周" },
@@ -353,6 +354,11 @@ export default function Garden() {
   // --- lamp echo ---
   const [lampEcho, setLampEcho] = useState(0);
 
+  // --- reply to the exchanged note ---
+  const [replyText, setReplyText] = useState("");
+  const [replySent, setReplySent] = useState(false);
+  const [replyEcho, setReplyEcho] = useState(0);
+
   // --- presence + first-visit greeting ---
   const [others, setOthers] = useState(0);
   const [greeting, setGreeting] = useState(false);
@@ -383,10 +389,16 @@ export default function Garden() {
           const lit = d.history.reduce(
             (n: number, g: GoodNews) => n + (g.litBy?.length ?? 0), 0
           );
+          const replied = d.history.reduce(
+            (n: number, g: GoodNews) => n + (g.replies?.length ?? 0), 0
+          );
           try {
             const seen = Number(localStorage.getItem(LAMPSEEN_KEY) ?? "0");
             if (lit > seen) setLampEcho(lit - seen);
             localStorage.setItem(LAMPSEEN_KEY, String(lit));
+            const rseen = Number(localStorage.getItem(REPLYSEEN_KEY) ?? "0");
+            if (replied > rseen) setReplyEcho(replied - rseen);
+            localStorage.setItem(REPLYSEEN_KEY, String(replied));
           } catch {}
         }
       })
@@ -468,6 +480,20 @@ export default function Garden() {
     } catch {}
   };
   const lampsReceived = history.reduce((n, g) => n + (g.litBy?.length ?? 0), 0);
+  const repliesReceived = history.flatMap(g => g.replies ?? []);
+
+  const sendReply = async () => {
+    const text = replyText.trim();
+    if (!match || !text || replySent) return;
+    setReplySent(true);
+    try {
+      await fetch("/api/goodnews/reply", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: match.id, clientId, text }),
+      });
+    } catch {}
+  };
 
   const castBottle = async () => {
     const text = bottleText.trim();
@@ -553,6 +579,11 @@ export default function Garden() {
               你不在的时候，有人为你的好消息点亮了 {lampEcho} 盏灯。
             </p>
           )}
+          {replyEcho > 0 && (
+            <p className="garden-echo font-serif">
+              有人给你的好消息回了一句话。
+            </p>
+          )}
           {anniversary && anniversary.text && (
             <p className="garden-echo garden-echo-anniv font-serif">
               {anniversary.label}，你写下过：“{anniversary.text}”
@@ -616,6 +647,11 @@ export default function Garden() {
                     你的好消息照亮过 {lampsReceived} 位访客。
                   </p>
                 )}
+                {repliesReceived.map((r, i) => (
+                  <p key={i} className="garden-reply-line font-serif">
+                    有人留下一句：“{r.text}”
+                  </p>
+                ))}
               </div>
               {match ? (
                 <div className="garden-card garden-card-match">
@@ -630,6 +666,28 @@ export default function Garden() {
                   >
                     {matchLit ? "灯已点亮 · 对方会看到" : "点一盏灯回赠"}
                   </button>
+                  {replySent ? (
+                    <p className="garden-hint font-serif ink-fade">
+                      回信已放在对方门口。
+                    </p>
+                  ) : (
+                    <div className="garden-reply-row">
+                      <input
+                        className="garden-input font-serif"
+                        value={replyText}
+                        onChange={e => setReplyText(e.target.value)}
+                        maxLength={100}
+                        placeholder="也可以回一句话……"
+                      />
+                      <button
+                        className="garden-lamp-btn font-type"
+                        onClick={sendReply}
+                        disabled={!replyText.trim()}
+                      >
+                        送出
+                      </button>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <p className="garden-hint font-serif italic ink-mute">

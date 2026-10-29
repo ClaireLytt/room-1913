@@ -90,6 +90,7 @@ export interface GoodNews {
   day: string; // YYYY-MM-DD
   createdAt: number;
   litBy?: string[]; // visitors who lit a lamp back for this note
+  replies?: { clientId: string; text: string; at: number }[]; // one line back, one per visitor
 }
 
 export function todayKey(now = new Date()): string {

@@ -2736,3 +2736,9 @@ body {
 .salon-ask { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
 .salon-ask .garden-btn { align-self: flex-start; margin-top: 4px; }
 .salon-answer { margin: 0; font-size: 14px; color: rgba(217,154,78,0.85); }
+
+/* ---------- Garden: reply a line ---------- */
+.garden-reply-row { display: flex; gap: 10px; margin-top: 10px; align-items: stretch; }
+.garden-reply-row .garden-input { flex: 1; }
+.garden-reply-row .garden-lamp-btn { margin-top: 0; white-space: nowrap; }
+.garden-reply-line { margin: 8px 0 0; font-size: 14px; color: rgba(159,184,138,0.9); }
