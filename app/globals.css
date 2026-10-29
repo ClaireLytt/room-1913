@@ -2629,3 +2629,9 @@ body {
 .garden-past { margin-top: 16px; width: 100%; }
 .garden-past-list { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
 .garden-past-line { margin: 4px 0 0; font-size: 14px; line-height: 1.7; color: rgba(232,220,196,0.82); }
+
+/* ---------- Garden: suitcase ---------- */
+.garden-suitcase-actions { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
+.garden-suitcase-actions .garden-btn { margin-top: 0; }
+.garden-suitcase-import { display: inline-block; cursor: pointer; }
+.garden-suitcase-import input { display: none; }

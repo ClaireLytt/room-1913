@@ -163,6 +163,7 @@ function Lamp({ streak }: { streak: number }) {
 }
 
 import Breathing from "../components/Breathing";
+import { packSuitcase, unpackSuitcase, suitcaseFilename } from "../lib/porter";
 
 const CLIENT_KEY = "room1913.garden.client.v1";
 const ANSWERS_KEY = "room1913.garden.answers.v1";
@@ -178,6 +179,7 @@ const NAV = [
   { id: "strengths", zh: "优势" },
   { id: "questions", zh: "五问" },
   { id: "bottle", zh: "瓶中信" },
+  { id: "suitcase", zh: "搬家" },
 ];
 
 function getClientId(): string {
@@ -273,6 +275,35 @@ export default function Garden() {
   const [bottleText, setBottleText] = useState("");
   const [bottleReceived, setBottleReceived] = useState<string | null>(null);
   const [bottleBusy, setBottleBusy] = useState(false);
+
+  // --- suitcase ---
+  const [portNote, setPortNote] = useState("");
+  const exportSuitcase = () => {
+    try {
+      const blob = new Blob([JSON.stringify(packSuitcase(), null, 2)], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = suitcaseFilename();
+      a.click();
+      URL.revokeObjectURL(a.href);
+      setPortNote("已打包带走。");
+    } catch {
+      setPortNote("打包失败。");
+    }
+  };
+  const importSuitcase = (file: File | undefined) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        setPortNote(unpackSuitcase(String(reader.result)));
+        setTimeout(() => window.location.reload(), 900);
+      } catch {
+        setPortNote("这不是 1913 号房间的行李。");
+      }
+    };
+    reader.readAsText(file);
+  };
 
   // --- three good things ---
   const [things, setThings] = useState<GoodThing[]>(
@@ -730,6 +761,28 @@ export default function Garden() {
               </button>
             </div>
           )}
+        </section>
+
+        {/* ----- suitcase ----- */}
+        <section className="garden-block" id="suitcase">
+          <h2 className="garden-block-title font-type">SUITCASE · 记录的携带</h2>
+          <p className="garden-hint font-serif ink-fade" style={{ margin: "0 0 14px" }}>
+            这个房间的记录只住在当前浏览器里。换设备前把它们打包带走，到新房间再放下。
+          </p>
+          <div className="garden-suitcase-actions">
+            <button className="garden-btn font-type" onClick={exportSuitcase}>
+              EXPORT · 打包带走
+            </button>
+            <label className="garden-btn font-type garden-suitcase-import">
+              IMPORT · 放下行李
+              <input
+                type="file"
+                accept="application/json"
+                onChange={e => importSuitcase(e.target.files?.[0])}
+              />
+            </label>
+          </div>
+          {portNote && <p className="garden-hint font-serif ink-fade">{portNote}</p>}
         </section>
 
         {/* ----- five questions ----- */}
