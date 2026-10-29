@@ -165,6 +165,7 @@ function Lamp({ streak }: { streak: number }) {
 
 import Breathing from "../components/Breathing";
 import { packSuitcase, unpackSuitcase, suitcaseFilename } from "../lib/porter";
+import { loadFlowLog } from "../lib/flow";
 
 const CLIENT_KEY = "room1913.garden.client.v1";
 const ANSWERS_KEY = "room1913.garden.answers.v1";
@@ -173,6 +174,7 @@ const STRENGTHS_KEY = "room1913.garden.strengths.v1";
 const LAMPSEEN_KEY = "room1913.garden.lampseen.v1";
 
 const NAV = [
+  { id: "week", zh: "本周" },
   { id: "news", zh: "好消息" },
   { id: "breath", zh: "呼吸" },
   { id: "things", zh: "三件好事" },
@@ -407,6 +409,23 @@ export default function Garden() {
     return null;
   })();
 
+  // --- this week, in one quiet card ---
+  const week = (() => {
+    const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+    const since = Date.now() - WEEK_MS;
+    const news = history.filter(n => n.createdAt >= since);
+    const nights = entries.filter(e => e.createdAt >= since).length;
+    let flowCount = 0, flowMin = 0;
+    try {
+      for (const f of loadFlowLog()) {
+        if (f.createdAt >= since) { flowCount++; flowMin += f.actualMin; }
+      }
+    } catch {}
+    return { news, nights, flowCount, flowMin };
+  })();
+  const weekHasAnything =
+    week.news.length > 0 || week.nights > 0 || week.flowCount > 0;
+
   const setThing = (i: number, field: keyof GoodThing, v: string) => {
     setThings(prev => prev.map((t, j) => (j === i ? { ...t, [field]: v } : t)));
   };
@@ -510,6 +529,46 @@ export default function Garden() {
             </p>
           )}
         </header>
+
+        {/* ----- this week ----- */}
+        {weekHasAnything && (
+          <section className="garden-block" id="week">
+            <h2 className="garden-block-title font-type">THIS WEEK · 本周小结</h2>
+            <ul className="garden-week">
+              {week.news.length > 0 && (
+                <li className="garden-week-row font-serif">
+                  花坛多开了 {week.news.length} 朵
+                  <span className="garden-week-dots">
+                    {week.news.map(n => (
+                      <span
+                        key={n.id}
+                        className="garden-week-dot"
+                        style={{ background: PILLAR_COLOR[n.pillar] }}
+                        title={PILLAR_LABEL[n.pillar].zh}
+                      />
+                    ))}
+                  </span>
+                </li>
+              )}
+              {week.nights > 0 && (
+                <li className="garden-week-row font-serif">
+                  记下了 {week.nights} 晚的三件好事
+                  {streak > 1 ? `，油灯连续亮了 ${streak} 天` : ""}
+                </li>
+              )}
+              {week.flowCount > 0 && (
+                <li className="garden-week-row font-serif">
+                  把表交给雨声 {week.flowCount} 次，共 {week.flowMin} 分钟
+                </li>
+              )}
+              {lampsReceived > 0 && (
+                <li className="garden-week-row font-serif">
+                  你的好消息照亮过 {lampsReceived} 位访客
+                </li>
+              )}
+            </ul>
+          </section>
+        )}
 
         {/* ----- daily good news ----- */}
         <section className="garden-block" id="news">
