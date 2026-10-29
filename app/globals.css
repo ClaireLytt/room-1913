@@ -2703,3 +2703,36 @@ body {
 .garden-greet-card p { margin: 0 0 14px; font-size: 16px; line-height: 1.8; }
 .garden-greet-card p:first-child { font-size: 20px; letter-spacing: 0.2em; }
 .garden-greet-card p:last-child { margin: 6px 0 0; font-size: 12px; }
+
+/* ---------- Salon (scripted night dialogues) ---------- */
+.salon-list { list-style: none; margin: 32px 0 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+.salon-scene {
+  border: 1px solid rgba(217,154,78,0.14);
+  border-radius: 6px;
+  background: linear-gradient(160deg, rgba(26,20,14,0.55), rgba(16,12,9,0.65));
+}
+.salon-scene-head {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 14px;
+  padding: 16px 22px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+.salon-scene-title { font-size: 17px; color: rgba(232,220,196,0.9); }
+.salon-scene-en { font-size: 10px; letter-spacing: 0.2em; color: rgba(217,154,78,0.55); }
+.salon-scene-body { padding: 0 22px 20px; }
+.salon-turn { margin: 0 0 14px; font-size: 15px; line-height: 1.8; color: rgba(232,220,196,0.86); }
+.salon-turn-who {
+  display: inline-block;
+  margin-right: 12px;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+}
+.salon-ask { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
+.salon-ask .garden-btn { align-self: flex-start; margin-top: 4px; }
+.salon-answer { margin: 0; font-size: 14px; color: rgba(217,154,78,0.85); }
