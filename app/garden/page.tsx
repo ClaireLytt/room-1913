@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import SessionRail from "../components/SessionRail";
 import WindowDateChip from "../components/WindowDateChip";
 import {
@@ -175,6 +175,7 @@ const LAMPSEEN_KEY = "room1913.garden.lampseen.v1";
 const GREETED_KEY = "room1913.garden.greeted.v1";
 const REPLYSEEN_KEY = "room1913.garden.replyseen.v1";
 const CAPSEEN_KEY = "room1913.garden.capseen.v1";
+const RESULTS_KEY = "room1913.garden.results.v1";
 
 const NAV = [
   { id: "week", zh: "本周" },
@@ -277,6 +278,53 @@ export default function Garden() {
   const strengthsDone = strengthPicks.length >= STRENGTH_CARDS.length;
   const strengthCard = STRENGTH_CARDS[strengthPicks.length];
   const top3 = topStrengths(strengthPicks);
+
+  // --- retake history: remember each completed run, compare with the last ---
+  const [results, setResults] = useState<{
+    optimism: { at: number; overall: number }[];
+    strengths: { at: number; top: Strength[] }[];
+  }>({ optimism: [], strengths: [] });
+  const recordedRun = useRef({ optimism: false, strengths: false });
+
+  useEffect(() => {
+    try {
+      const v = JSON.parse(localStorage.getItem(RESULTS_KEY) ?? "{}");
+      setResults({
+        optimism: Array.isArray(v.optimism) ? v.optimism : [],
+        strengths: Array.isArray(v.strengths) ? v.strengths : [],
+      });
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    if (gameDone && !recordedRun.current.optimism) {
+      recordedRun.current.optimism = true;
+      setResults(prev => {
+        const next = { ...prev, optimism: [...prev.optimism, { at: Date.now(), overall: result.overall }] };
+        try { localStorage.setItem(RESULTS_KEY, JSON.stringify(next)); } catch {}
+        return next;
+      });
+    }
+    if (!gameDone) recordedRun.current.optimism = false;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gameDone]);
+
+  useEffect(() => {
+    if (strengthsDone && !recordedRun.current.strengths) {
+      recordedRun.current.strengths = true;
+      const top = top3.map(t => t.strength);
+      setResults(prev => {
+        const next = { ...prev, strengths: [...prev.strengths, { at: Date.now(), top }] };
+        try { localStorage.setItem(RESULTS_KEY, JSON.stringify(next)); } catch {}
+        return next;
+      });
+    }
+    if (!strengthsDone) recordedRun.current.strengths = false;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [strengthsDone]);
+
+  const prevOptimism = results.optimism.length >= 2 ? results.optimism[results.optimism.length - 2] : null;
+  const prevStrengths = results.strengths.length >= 2 ? results.strengths[results.strengths.length - 2] : null;
 
   // --- bottle post ---
   const [bottleText, setBottleText] = useState("");
@@ -884,6 +932,16 @@ export default function Garden() {
               <p className="garden-card-text font-serif" style={{ marginTop: "10px" }}>
                 {styleVerdict(result.overall)}
               </p>
+              {prevOptimism && (
+                <p className="garden-hint font-serif ink-fade">
+                  上次 {prevOptimism.overall} → 这次 {result.overall}
+                  {result.overall > prevOptimism.overall
+                    ? "，解释的方式松动了一点。"
+                    : result.overall < prevOptimism.overall
+                      ? "，今天也许只是累了。"
+                      : "，和上次一样。"}
+                </p>
+              )}
               <p className="garden-hint font-serif ink-fade">
                 条越满，说明你把挫折解释得越「暂时、局部、非全责」——这正是可以练习的乐观。
               </p>
@@ -942,6 +1000,14 @@ export default function Garden() {
               <p className="garden-hint font-serif ink-fade">
                 这是你的签名优势——塞利格曼说，幸福不在修补短板，而在把它们用在每一天。
               </p>
+              {prevStrengths && (
+                <p className="garden-hint font-serif ink-fade">
+                  上次的前三：{prevStrengths.top.map(t => STRENGTH_LABEL[t].zh).join("、")}
+                  {prevStrengths.top.join() === top3.map(t => t.strength).join()
+                    ? "——没有变，这就是「签名」的含义。"
+                    : "——有些优势换了位置，人是会流动的。"}
+                </p>
+              )}
               <button className="garden-btn font-type" onClick={() => setStrengthPicks(() => [])}>
                 AGAIN · 再测一次
               </button>
