@@ -89,6 +89,7 @@ export interface GoodNews {
   pillar: Pillar;
   day: string; // YYYY-MM-DD
   createdAt: number;
+  litBy?: string[]; // visitors who lit a lamp back for this note
 }
 
 export function todayKey(now = new Date()): string {

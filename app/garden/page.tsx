@@ -18,6 +18,13 @@ import {
   todayEntry,
   streakOf,
 } from "../lib/goodthings";
+import {
+  STYLE_DIMENSIONS,
+  STYLE_ITEMS,
+  STYLE_LABEL,
+  scoreStyle,
+  styleVerdict,
+} from "../lib/optimism";
 
 const PILLAR_COLOR: Record<Pillar, string> = {
   positive: "#d99a4e",
@@ -113,6 +120,15 @@ export default function Garden() {
   const [history, setHistory] = useState<GoodNews[]>([]);
   const [busy, setBusy] = useState(false);
 
+  // --- lamp back ---
+  const [matchLit, setMatchLit] = useState(false);
+
+  // --- optimism game ---
+  const [picks, setPicks] = useState<boolean[]>([]);
+  const gameDone = picks.length >= STYLE_ITEMS.length;
+  const current = STYLE_ITEMS[picks.length];
+  const result = scoreStyle(picks);
+
   // --- three good things ---
   const [things, setThings] = useState<GoodThing[]>(
     () => [0, 1, 2].map(() => ({ text: "", why: "" }))
@@ -145,6 +161,19 @@ export default function Garden() {
     setThings(prev => prev.map((t, j) => (j === i ? { ...t, [field]: v } : t)));
   };
   const thingsComplete = things.every(t => t.text.trim().length > 0);
+
+  const lightLamp = async () => {
+    if (!match || matchLit) return;
+    setMatchLit(true); // the gesture lands immediately; server call follows
+    try {
+      await fetch("/api/goodnews/lamp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: match.id, clientId }),
+      });
+    } catch {}
+  };
+  const lampsReceived = history.reduce((n, g) => n + (g.litBy?.length ?? 0), 0);
   const saveThings = () => {
     if (!thingsComplete) return;
     setEntries(saveEntry(things.map(t => ({ text: t.text.trim(), why: t.why.trim() }))));
@@ -207,6 +236,11 @@ export default function Garden() {
                   YOURS · {PILLAR_LABEL[mine.pillar].letter} {PILLAR_LABEL[mine.pillar].zh}
                 </p>
                 <p className="garden-card-text font-serif">“{mine.text}”</p>
+                {lampsReceived > 0 && (
+                  <p className="garden-hint font-serif ink-fade">
+                    你的好消息照亮过 {lampsReceived} 位访客。
+                  </p>
+                )}
               </div>
               {match ? (
                 <div className="garden-card garden-card-match">
@@ -214,6 +248,13 @@ export default function Garden() {
                     IN EXCHANGE · 来自另一位访客
                   </p>
                   <p className="garden-card-text font-serif">“{match.text}”</p>
+                  <button
+                    className={`garden-lamp-btn font-type ${matchLit ? "garden-lamp-btn-lit" : ""}`}
+                    onClick={lightLamp}
+                    disabled={matchLit}
+                  >
+                    {matchLit ? "灯已点亮 · 对方会看到" : "点一盏灯回赠"}
+                  </button>
                 </div>
               ) : (
                 <p className="garden-hint font-serif italic ink-mute">
@@ -314,6 +355,65 @@ export default function Garden() {
                 disabled={!thingsComplete}
               >
                 KEEP · 记下这三件
+              </button>
+            </div>
+          )}
+        </section>
+
+        {/* ----- optimism game ----- */}
+        <section className="garden-block">
+          <h2 className="garden-block-title font-type">LEARNED OPTIMISM · 乐观解释风格</h2>
+
+          {!gameDone && current ? (
+            <div className="garden-game">
+              <p className="garden-game-progress font-type">
+                {picks.length + 1} / {STYLE_ITEMS.length}
+              </p>
+              <p className="garden-game-situation font-serif">{current.situation}</p>
+              <p className="garden-hint font-serif ink-fade">此刻你心里的第一反应更接近哪一句？</p>
+              <div className="garden-game-options">
+                {current.options.map((o, i) => (
+                  <button
+                    key={i}
+                    className="garden-game-option font-serif"
+                    onClick={() => setPicks(prev => [...prev, o.optimistic])}
+                  >
+                    {o.text}
+                  </button>
+                ))}
+              </div>
+              {picks.length > 0 && (
+                <button
+                  className="garden-game-back font-type"
+                  onClick={() => setPicks(prev => prev.slice(0, -1))}
+                >
+                  ‹ 上一题
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="garden-perma">
+              {STYLE_DIMENSIONS.map(d => {
+                const r = result.byDimension[d];
+                const pct = r.total ? Math.round((r.optimistic / r.total) * 100) : 0;
+                return (
+                  <div key={d} className="garden-perma-row">
+                    <span className="garden-perma-label font-type">{STYLE_LABEL[d].zh}</span>
+                    <span className="garden-perma-bar">
+                      <span className="garden-perma-fill" style={{ width: `${pct}%` }} />
+                    </span>
+                    <span className="garden-perma-score font-type">{r.optimistic}/{r.total}</span>
+                  </div>
+                );
+              })}
+              <p className="garden-card-text font-serif" style={{ marginTop: "10px" }}>
+                {styleVerdict(result.overall)}
+              </p>
+              <p className="garden-hint font-serif ink-fade">
+                条越满，说明你把挫折解释得越「暂时、局部、非全责」——这正是可以练习的乐观。
+              </p>
+              <button className="garden-btn font-type" onClick={() => setPicks([])}>
+                AGAIN · 再来一轮
               </button>
             </div>
           )}
