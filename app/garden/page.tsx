@@ -208,6 +208,11 @@ export default function Garden() {
   const strengthCard = STRENGTH_CARDS[strengthPicks.length];
   const top3 = topStrengths(strengthPicks);
 
+  // --- bottle post ---
+  const [bottleText, setBottleText] = useState("");
+  const [bottleReceived, setBottleReceived] = useState<string | null>(null);
+  const [bottleBusy, setBottleBusy] = useState(false);
+
   // --- three good things ---
   const [things, setThings] = useState<GoodThing[]>(
     () => [0, 1, 2].map(() => ({ text: "", why: "" }))
@@ -253,6 +258,25 @@ export default function Garden() {
     } catch {}
   };
   const lampsReceived = history.reduce((n, g) => n + (g.litBy?.length ?? 0), 0);
+
+  const castBottle = async () => {
+    const text = bottleText.trim();
+    if (!text || bottleBusy) return;
+    setBottleBusy(true);
+    try {
+      const res = await fetch("/api/bottle", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text, clientId }),
+      });
+      const d = await res.json();
+      if (d.cast) {
+        setBottleReceived(d.received?.text ?? null);
+        setBottleText("");
+      }
+    } catch {}
+    setBottleBusy(false);
+  };
   const saveThings = () => {
     if (!thingsComplete) return;
     setEntries(saveEntry(things.map(t => ({ text: t.text.trim(), why: t.why.trim() }))));
@@ -549,6 +573,49 @@ export default function Garden() {
               </p>
               <button className="garden-btn font-type" onClick={() => setStrengthPicks([])}>
                 AGAIN · 再测一次
+              </button>
+            </div>
+          )}
+        </section>
+
+        {/* ----- bottle post ----- */}
+        <section className="garden-block">
+          <h2 className="garden-block-title font-type">BOTTLE POST · 瓶中信</h2>
+          {bottleReceived === null ? (
+            <div className="garden-share">
+              <p className="garden-hint font-serif ink-fade" style={{ margin: "0 0 14px" }}>
+                写一句话，给同样在深夜打开这个房间的人。投进雨里，会有一只别人的瓶子漂到你脚边。
+              </p>
+              <textarea
+                className="garden-input font-serif"
+                value={bottleText}
+                onChange={e => setBottleText(e.target.value)}
+                maxLength={200}
+                rows={2}
+                placeholder="写给陌生夜航者的一句话……"
+              />
+              <button
+                className="garden-btn font-type"
+                onClick={castBottle}
+                disabled={!bottleText.trim() || bottleBusy}
+              >
+                {bottleBusy ? "CASTING…" : "CAST · 投进雨里"}
+              </button>
+            </div>
+          ) : (
+            <div className="garden-exchange">
+              <div className="garden-card garden-card-match">
+                <p className="garden-card-tag font-type">WASHED ASHORE · 漂到你脚边的瓶子</p>
+                <p className="garden-card-text font-serif">“{bottleReceived}”</p>
+              </div>
+              <p className="garden-hint font-serif ink-fade">
+                你的瓶子也已经在雨里了，会在某个深夜漂到另一个人脚边。
+              </p>
+              <button
+                className="garden-game-back font-type"
+                onClick={() => setBottleReceived(null)}
+              >
+                再投一只
               </button>
             </div>
           )}

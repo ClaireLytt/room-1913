@@ -1,5 +1,21 @@
 "use client";
 import { useState } from "react";
+import { loadGoodThings, todayEntry } from "../lib/goodthings";
+
+// When tonight's three good things are already written, the mirror answers
+// in Seligman's register instead of the room's usual half-light.
+const WARM_ANSWERS = [
+  "You already wrote down three reasons.",
+  "The lamp you lit is still burning.",
+  "Count what grew, not what fell.",
+  "Tonight you kept the garden. It keeps you back.",
+  "Gratitude is a door that opens from your side.",
+  "The storm passes. The practice stays.",
+  "You are better at this than you believe.",
+  "Small good things are still good things.",
+  "What you water, grows.",
+  "Hope is a skill. You are practicing it.",
+];
 
 const ANSWERS = [
   "Yes, but not yet.",
@@ -29,7 +45,11 @@ export default function Mirror() {
   const [q, setQ] = useState("");
 
   const openMirror = () => {
-    setQ(ANSWERS[Math.floor(Math.random() * ANSWERS.length)]);
+    let pool = ANSWERS;
+    try {
+      if (todayEntry(loadGoodThings())) pool = WARM_ANSWERS;
+    } catch {}
+    setQ(pool[Math.floor(Math.random() * pool.length)]);
     setOpen(true);
     window.dispatchEvent(new CustomEvent("room1913:hush", { detail: { mul: 0.22, ms: 700 } }));
   };
