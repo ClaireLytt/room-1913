@@ -4,7 +4,7 @@
 import type { CharacterId } from "../characters";
 
 export interface DialogueTurn {
-  who: Extract<CharacterId, "seligman" | "csik">;
+  who: CharacterId;
   text: string;
 }
 
@@ -92,5 +92,59 @@ export const SCENES: DialogueScene[] = [
       { who: "seligman", text: "所以这间屋子让访客每天记一件小事。不是记录生活的例外，是练习在场于它的平常。" },
     ],
     ask: "今天这个平常的日子里，你最「在场」的一刻是什么时候？",
+  },
+];
+
+// Volume II — the four of 1913, by candlelight.
+export const SCENES_CLASSIC: DialogueScene[] = [
+  {
+    id: "dream-rights",
+    title: "梦属于谁",
+    titleEn: "Whose dream is it",
+    turns: [
+      { who: "freud", text: "卡尔，梦是愿望的化装舞会。脱掉面具，下面总站着同一个客人。" },
+      { who: "jung", text: "教授，我见过太多梦，面具下面不是客人，是一座教堂——比做梦的人更老。" },
+      { who: "freud", text: "你又要谈你的集体无意识了。小心，神秘主义是科学的鸦片。" },
+      { who: "jung", text: "而把一切归于欲望，是另一种省事。我们都在解释黑暗，西格蒙德，只是你带的是手术刀，我带的是灯。" },
+      { who: "freud", text: "……灯会熄。手术刀至少留下疤，证明我们来过。" },
+    ],
+    ask: "你最近记得的一个梦，更像一位客人，还是一座教堂？",
+  },
+  {
+    id: "inferiority",
+    title: "驱动我们的究竟是什么",
+    titleEn: "What drives us",
+    turns: [
+      { who: "freud", text: "阿尔弗雷德，你把我的性欲理论换成了自卑感，像把烈酒换成了温水。" },
+      { who: "adler", text: "温水也能把人烫醒，教授。孩子踮起脚够桌沿的那一刻，比任何欲望都更早。" },
+      { who: "freud", text: "可他为什么要够桌沿？桌上放着什么？" },
+      { who: "adler", text: "放着「成为更完整的人」。您总往下挖，我更愿意问人要往哪里去——方向比地基诚实。" },
+    ],
+    ask: "此刻驱动你的，更像一种匮乏，还是一个方向？",
+  },
+  {
+    id: "mirror-stage",
+    title: "镜子里的陌生人",
+    titleEn: "The stranger in the mirror",
+    turns: [
+      { who: "lacan", text: "荣格先生，婴儿在镜中认出自己的那一刻，其实认错了人——他认领了一个比自己完整的影像。" },
+      { who: "jung", text: "于是终其一生都在追赶那个影像？这听起来像我说的人格面具。" },
+      { who: "lacan", text: "面具还能摘。影像摘不掉——我们是用别人的语言爱自己的。" },
+      { who: "jung", text: "那你的治疗把人带向哪里？" },
+      { who: "lacan", text: "带向一句口误、一个停顿。真话只从裂缝里漏出来。" },
+    ],
+    ask: "镜子里的你，和你心里的你，今天差了多远？",
+  },
+  {
+    id: "courage",
+    title: "勇气这件小事",
+    titleEn: "On courage",
+    turns: [
+      { who: "adler", text: "雅克，你们把人说得太复杂了。我诊室里的人需要的常常只是一点勇气——被讨厌的勇气。" },
+      { who: "lacan", text: "可勇气也是一个能指，阿德勒先生。他鼓起的是谁期待中的勇气？" },
+      { who: "adler", text: "管它是谁的词。明早他敢不敢去敲那扇门，才是真的。" },
+      { who: "lacan", text: "……好吧。有时候，一扇真的门胜过我全部的理论。" },
+    ],
+    ask: "你明早有一扇该敲的门吗？",
   },
 ];

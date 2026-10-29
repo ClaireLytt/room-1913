@@ -12,6 +12,8 @@ import {
 } from "../lib/dimensions";
 import { CHARACTERS, type CharacterId } from "../characters";
 import GardenLight from "./GardenLight";
+import DreamLog from "./DreamLog";
+import { dreamBias, type DreamEntry } from "../lib/dreams";
 
 const PRIMARY_COLOR: Record<CharacterId, string> = {
   freud: "rgba(217,154,78,0.95)",
@@ -31,9 +33,20 @@ export default function MapShell() {
     setRecords(loadArchive());
   }, []);
 
+  const [dreams, setDreams] = useState<DreamEntry[]>([]);
+
   const history = useMemo(() => derivedHistory(records), [records]);
-  const latest = useMemo(() => latestState(history), [history]);
+  const latest = useMemo(() => {
+    const base = latestState(history);
+    const bias = dreamBias(dreams);
+    const out = { ...base };
+    for (const d of Object.keys(bias) as Dimension[]) {
+      out[d] = Math.min(100, out[d] + (bias[d] ?? 0));
+    }
+    return out;
+  }, [history, dreams]);
   const empty = records.length === 0;
+  const dreamsTouch = dreams.length > 0;
 
   return (
     <section className="map-stage">
@@ -45,6 +58,9 @@ export default function MapShell() {
       <div className="map-grid">
         <div className="map-radar-wrap">
           <RadarChart values={latest} activeDim={activeDim} />
+          {dreamsTouch && (
+            <p className="map-dream-note font-serif ink-mute">雷达含近来梦境的轻微偏移</p>
+          )}
           <ul className="map-legend">
             {DIMENSIONS.map(d => (
               <li
@@ -76,6 +92,8 @@ export default function MapShell() {
       </div>
 
       <EventTimeline records={records} hover={hover} setHover={setHover} />
+
+      <DreamLog onChange={setDreams} />
 
       <GardenLight />
     </section>

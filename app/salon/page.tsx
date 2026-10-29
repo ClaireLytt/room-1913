@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import SessionRail from "../components/SessionRail";
 import WindowDateChip from "../components/WindowDateChip";
 import { CHARACTERS } from "../characters";
-import { SCENES, DialogueScene } from "../lib/dialogues";
+import { SCENES, SCENES_CLASSIC, DialogueScene } from "../lib/dialogues";
 
 const ANSWERS_KEY = "room1913.salon.v1";
 
@@ -121,8 +121,21 @@ export default function Salon() {
           </p>
         </header>
 
+        <h2 className="salon-volume font-type">VOL. I · 两位现代访客</h2>
         <ul className="salon-list">
           {SCENES.map(s => (
+            <Scene
+              key={s.id}
+              scene={s}
+              answer={answers[s.id]}
+              onAnswer={v => saveAnswer(s.id, v)}
+            />
+          ))}
+        </ul>
+
+        <h2 className="salon-volume font-type">VOL. II · 1913 年的四人</h2>
+        <ul className="salon-list">
+          {SCENES_CLASSIC.map(s => (
             <Scene
               key={s.id}
               scene={s}

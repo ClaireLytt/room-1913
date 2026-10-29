@@ -14,6 +14,7 @@ const KEYS = [
   "room1913.flow.v1",
   "room1913.salon.v1",
   "room1913.garden.results.v1",
+  "room1913.dreams.v1",
 ];
 
 export interface Suitcase {
