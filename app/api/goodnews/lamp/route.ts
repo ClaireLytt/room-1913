@@ -1,11 +1,8 @@
 import { NextResponse } from "next/server";
-import { promises as fs } from "fs";
-import path from "path";
 import { GoodNews } from "@/app/lib/perma";
+import { readCollection, writeCollection } from "@/app/lib/store";
 
 export const runtime = "nodejs";
-
-const DATA_FILE = path.join(process.cwd(), "data", "goodnews.json");
 
 // Light a lamp back for someone else's good news.
 export async function POST(req: Request) {
@@ -17,10 +14,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "missing id or clientId" }, { status: 400 });
     }
 
-    let list: GoodNews[] = [];
-    try {
-      list = JSON.parse(await fs.readFile(DATA_FILE, "utf-8"));
-    } catch {}
+    const list = await readCollection<GoodNews>("goodnews");
     const note = list.find(n => n.id === id);
     // seed notes are not in the store; accept silently so the gesture still lands
     if (!note) return NextResponse.json({ lit: true, litCount: 1 });
@@ -31,7 +25,7 @@ export async function POST(req: Request) {
     note.litBy = note.litBy ?? [];
     if (!note.litBy.includes(clientId)) {
       note.litBy.push(clientId);
-      await fs.writeFile(DATA_FILE, JSON.stringify(list, null, 2), "utf-8");
+      await writeCollection("goodnews", list);
     }
     return NextResponse.json({ lit: true, litCount: note.litBy.length });
   } catch (err) {

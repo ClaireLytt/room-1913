@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { promises as fs } from "fs";
-import path from "path";
+import { readCollection, writeCollection } from "@/app/lib/store";
 
 export const runtime = "nodejs";
 
@@ -15,9 +14,6 @@ interface Bottle {
   createdAt: number;
 }
 
-const DATA_DIR = path.join(process.cwd(), "data");
-const DATA_FILE = path.join(DATA_DIR, "bottles.json");
-
 const SEEDS: string[] = [
   "凌晨打开这个房间的人，愿你的台灯和我的一样暖。",
   "今天也没什么大事发生，这本身就是一件好事。",
@@ -27,14 +23,7 @@ const SEEDS: string[] = [
   "把今天过完就好，明天的事交给明天的你。",
 ];
 
-async function loadBottles(): Promise<Bottle[]> {
-  try {
-    const list = JSON.parse(await fs.readFile(DATA_FILE, "utf-8"));
-    return Array.isArray(list) ? list : [];
-  } catch {
-    return [];
-  }
-}
+const loadBottles = () => readCollection<Bottle>("bottles");
 
 function pickForMe(list: Bottle[], clientId: string): { text: string } | null {
   const others = list.filter(b => b.clientId !== clientId);
@@ -59,8 +48,7 @@ export async function POST(req: Request) {
       text,
       createdAt: Date.now(),
     });
-    await fs.mkdir(DATA_DIR, { recursive: true });
-    await fs.writeFile(DATA_FILE, JSON.stringify(list, null, 2), "utf-8");
+    await writeCollection("bottles", list);
     return NextResponse.json({ cast: true, received: pickForMe(list, clientId) });
   } catch (err) {
     console.error("bottle error", err);

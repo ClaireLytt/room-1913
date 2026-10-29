@@ -1,12 +1,8 @@
 import { NextResponse } from "next/server";
-import { promises as fs } from "fs";
-import path from "path";
 import { classifyPillar, GoodNews, Pillar, todayKey } from "@/app/lib/perma";
+import { readCollection, writeCollection } from "@/app/lib/store";
 
 export const runtime = "nodejs";
-
-const DATA_DIR = path.join(process.cwd(), "data");
-const DATA_FILE = path.join(DATA_DIR, "goodnews.json");
 
 // A few other visitors' notes, so the first visitor still finds an exchange.
 const SEEDS: Omit<GoodNews, "day" | "createdAt">[] = [
@@ -22,20 +18,8 @@ const SEEDS: Omit<GoodNews, "day" | "createdAt">[] = [
   { id: "seed-10", clientId: "seed", pillar: "accomplishment", text: "今天跑完了人生第一个五公里，很慢，但跑完了。" },
 ];
 
-async function loadStore(): Promise<GoodNews[]> {
-  try {
-    const raw = await fs.readFile(DATA_FILE, "utf-8");
-    const list = JSON.parse(raw);
-    return Array.isArray(list) ? list : [];
-  } catch {
-    return [];
-  }
-}
-
-async function saveStore(list: GoodNews[]): Promise<void> {
-  await fs.mkdir(DATA_DIR, { recursive: true });
-  await fs.writeFile(DATA_FILE, JSON.stringify(list, null, 2), "utf-8");
-}
+const loadStore = () => readCollection<GoodNews>("goodnews");
+const saveStore = (list: GoodNews[]) => writeCollection("goodnews", list);
 
 function seedPool(): GoodNews[] {
   const now = Date.now();

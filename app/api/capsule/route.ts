@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { promises as fs } from "fs";
-import path from "path";
+import { readCollection, writeCollection } from "@/app/lib/store";
 
 export const runtime = "nodejs";
 
@@ -15,19 +14,9 @@ interface Capsule {
   openAt: number;
 }
 
-const DATA_DIR = path.join(process.cwd(), "data");
-const DATA_FILE = path.join(DATA_DIR, "capsules.json");
-
 const ALLOWED_DAYS = [90, 180, 365];
 
-async function loadCapsules(): Promise<Capsule[]> {
-  try {
-    const list = JSON.parse(await fs.readFile(DATA_FILE, "utf-8"));
-    return Array.isArray(list) ? list : [];
-  } catch {
-    return [];
-  }
-}
+const loadCapsules = () => readCollection<Capsule>("capsules");
 
 function view(c: Capsule, now: number) {
   return c.openAt <= now
@@ -70,8 +59,7 @@ export async function POST(req: Request) {
     };
     const list = await loadCapsules();
     list.push(capsule);
-    await fs.mkdir(DATA_DIR, { recursive: true });
-    await fs.writeFile(DATA_FILE, JSON.stringify(list, null, 2), "utf-8");
+    await writeCollection("capsules", list);
     return NextResponse.json({ sealed: view(capsule, now) });
   } catch (err) {
     console.error("capsule error", err);

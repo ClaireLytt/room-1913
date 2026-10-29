@@ -18,6 +18,11 @@ Open http://localhost:3000.
 2. Push this folder to a Git repo, then import it at vercel.com/new.
 3. In the Vercel project's **Environment Variables**, add:
    - `ANTHROPIC_API_KEY` = your key from console.anthropic.com
+   - `KV_REST_API_URL` and `KV_REST_API_TOKEN` = a Vercel KV / Upstash
+     Redis REST endpoint, so the garden's shared collections (good news,
+     bottles, capsules) persist — on serverless hosts the filesystem is
+     ephemeral, and without these the garden falls back to per-instance
+     files that vanish between deploys
 4. Deploy.
 
 The API key is only ever read on the server in `app/api/chat/route.ts` — it is never sent to the browser.
