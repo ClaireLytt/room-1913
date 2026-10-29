@@ -14,6 +14,66 @@ const DURATIONS = [15, 25, 50];
 
 type Stage = "setup" | "running" | "checkin" | "done";
 
+const STATE_COLOR: Record<string, string> = {
+  flow: "#d99a4e",
+  arousal: "#c9b36a",
+  control: "#8fb3a8",
+  anxiety: "#b87a4a",
+  worry: "#b87a4a",
+  relaxation: "#9fb88a",
+  boredom: "#8a8a7a",
+  apathy: "#6a665e",
+};
+
+// Sessions plotted on Csikszentmihalyi's challenge-by-skill plane.
+function FlowMap({ log }: { log: FlowSession[] }) {
+  if (log.length < 2) return null;
+  const size = 300;
+  const pad = 34;
+  const scale = (v: number) => pad + ((v - 1) / 8) * (size - 2 * pad);
+  const x = (skill: number) => scale(skill);
+  const y = (challenge: number) => size - scale(challenge);
+  return (
+    <section className="garden-block">
+      <h2 className="garden-block-title font-type">FLOW MAP · 你的心流地图</h2>
+      <svg className="flow-map" viewBox={`0 0 ${size} ${size}`} role="img" aria-label="flow map">
+        {/* the flow channel: a soft diagonal band */}
+        <polygon
+          points={`${x(2.5)},${y(1)} ${x(9)},${y(7.5)} ${x(9)},${y(9)} ${x(7.5)},${y(9)} ${x(1)},${y(2.5)} ${x(1)},${y(1)}`}
+          fill="rgba(217,154,78,0.07)"
+        />
+        <rect x={pad} y={size - scale(9)} width={size - 2 * pad} height={size - 2 * pad}
+          fill="none" stroke="rgba(217,154,78,0.18)" />
+        <line x1={x(1)} y1={y(1)} x2={x(9)} y2={y(9)} stroke="rgba(217,154,78,0.25)" strokeDasharray="3 4" />
+        <text className="flow-map-label" x={x(2)} y={y(8.3)}>焦虑</text>
+        <text className="flow-map-label" x={x(7.6)} y={y(8.6)}>心流</text>
+        <text className="flow-map-label" x={x(7.8)} y={y(1.6)}>无聊</text>
+        <text className="flow-map-label" x={x(1.9)} y={y(1.4)}>淡漠</text>
+        <text className="flow-map-axis" x={size / 2} y={size - 6} textAnchor="middle">能力 →</text>
+        <text className="flow-map-axis" x={10} y={size / 2} textAnchor="middle"
+          transform={`rotate(-90 10 ${size / 2})`}>挑战 →</text>
+        {log.map(s => (
+          <circle
+            key={s.id}
+            cx={x(s.skill)}
+            cy={y(s.challenge)}
+            r={Math.min(9, 3.5 + s.actualMin / 15)}
+            fill={STATE_COLOR[s.state] ?? "#8a8a7a"}
+            fillOpacity="0.75"
+            stroke="rgba(232,220,196,0.35)"
+            strokeWidth="0.6"
+          >
+            <title>{`${s.intention} · ${STATE_LABEL[s.state].zh} · ${s.actualMin} 分钟`}</title>
+          </circle>
+        ))}
+      </svg>
+      <p className="garden-hint font-serif ink-fade">
+        每个点是一段专注；点越大做得越久。愿它们慢慢聚向对角线的上端。
+      </p>
+    </section>
+  );
+}
+
 export default function Flow() {
   const [stage, setStage] = useState<Stage>("setup");
   const [intention, setIntention] = useState("");
@@ -175,6 +235,8 @@ export default function Flow() {
             </button>
           </section>
         )}
+
+        {stage !== "running" && <FlowMap log={log} />}
 
         {log.length > 0 && stage !== "running" && (
           <section className="garden-block">

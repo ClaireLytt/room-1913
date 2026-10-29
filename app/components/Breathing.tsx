@@ -12,11 +12,40 @@ const PHASES: { phase: Phase; seconds: number; zh: string }[] = [
 ];
 const CYCLES = 9; // ~3 minutes
 
+// One soft synthesized bell per phase, so the rhythm can be followed with
+// closed eyes. Created lazily on the starting click (a user gesture).
+const CHIME_HZ: Record<Phase, number> = { inhale: 523.25, hold: 659.25, exhale: 392.0 };
+
+function makeChime(): ((phase: Phase) => void) | null {
+  try {
+    const Ctx = window.AudioContext ?? (window as any).webkitAudioContext;
+    if (!Ctx) return null;
+    const ctx: AudioContext = new Ctx();
+    return (phase: Phase) => {
+      try {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.value = CHIME_HZ[phase];
+        gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.045, ctx.currentTime + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 1.6);
+        osc.connect(gain).connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 1.7);
+      } catch {}
+    };
+  } catch {
+    return null;
+  }
+}
+
 export default function Breathing({ onFinish }: { onFinish: () => void }) {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(0); // index into cycles*phases
   const [done, setDone] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const chime = useRef<((phase: Phase) => void) | null>(null);
 
   const stop = () => {
     if (timer.current) clearTimeout(timer.current);
@@ -34,10 +63,12 @@ export default function Breathing({ onFinish }: { onFinish: () => void }) {
     setDone(false);
     setStep(0);
     window.dispatchEvent(new CustomEvent("room1913:hush", { detail: { mul: 0.3, ms: 900 } }));
+    if (!chime.current) chime.current = makeChime();
     const total = CYCLES * PHASES.length;
     const run = (i: number) => {
       if (i >= total) { setDone(true); return; }
       setStep(i);
+      chime.current?.(PHASES[i % PHASES.length].phase);
       timer.current = setTimeout(() => run(i + 1), PHASES[i % PHASES.length].seconds * 1000);
     };
     run(0);
