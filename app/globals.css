@@ -2658,3 +2658,17 @@ body {
   background: radial-gradient(circle at 35% 35%, rgba(184,122,74,0.95), rgba(120,62,40,0.9));
   box-shadow: 0 0 10px rgba(184,122,74,0.3);
 }
+
+/* ---------- Flow page ---------- */
+.flow-running { display: flex; flex-direction: column; align-items: center; padding: 48px 26px; }
+.flow-intention { margin: 0 0 10px; font-size: 16px; }
+.flow-clock {
+  margin: 0;
+  font-size: 64px;
+  letter-spacing: 0.12em;
+  color: rgba(232,220,196,0.92);
+  text-shadow: 0 0 24px rgba(217,154,78,0.2);
+}
+.flow-sliders { display: flex; flex-direction: column; gap: 16px; margin-bottom: 6px; }
+.flow-slider-row { display: grid; grid-template-columns: 120px 1fr 28px; gap: 14px; align-items: center; }
+.flow-slider-row input[type="range"] { accent-color: #d99a4e; }

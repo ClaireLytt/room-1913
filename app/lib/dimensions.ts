@@ -38,6 +38,7 @@ const PRIMARY_BIAS: Record<CharacterId, Partial<Record<Dimension, number>>> = {
   adler: { order: 8, rationality: 5 },
   lacan: { sensitivity: 6, dream: 6 },
   seligman: { sensitivity: 5, order: 5 },
+  csik: { order: 6, rationality: 4 },
 };
 
 const TONE_BIAS: { test: RegExp; nudge: Partial<Record<Dimension, number>> }[] = [

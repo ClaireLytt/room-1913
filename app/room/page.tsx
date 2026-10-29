@@ -25,7 +25,7 @@ import { loadDraft, saveDraft, clearDraft } from "../lib/draft";
 interface Msg { role: "user" | "assistant"; content: string; who?: CharacterId }
 type Turn = { who: CharacterId; text: string };
 
-const SEAT_ORDER: CharacterId[] = ["jung", "freud", "adler", "lacan", "seligman"];
+const SEAT_ORDER: CharacterId[] = ["jung", "freud", "adler", "lacan", "seligman", "csik"];
 const DISTILL_AFTER_TURNS = 2;
 
 export default function Room() {
@@ -251,7 +251,8 @@ function Roundtable({ active, toggle }: { active: Set<CharacterId>; toggle: (c: 
     { id: "freud", pos: "right-[6%] top-1/2 -translate-y-1/2" },
     { id: "adler", pos: "bottom-[6%] left-1/2 -translate-x-1/2" },
     { id: "lacan", pos: "left-[6%] top-1/2 -translate-y-1/2" },
-    { id: "seligman", pos: "top-[14%] right-[10%]" }
+    { id: "seligman", pos: "top-[14%] right-[10%]" },
+    { id: "csik", pos: "top-[14%] left-[10%]" }
   ];
   return (
     <div className="relative mx-auto my-6 h-[360px] w-[360px] md:h-[440px] md:w-[440px] animate-shadow-drift">
@@ -287,6 +288,7 @@ function Overture({ active }: { active: Set<CharacterId> }) {
     adler: "阿德勒合上一本书，抬起头，不慌不忙。",
     lacan: "拉康已经在对着灯光喃喃自语了。",
     seligman: "塞利格曼把一页写着三件好事的纸轻轻折好，朝你点头。",
+    csik: "契克森米哈赖正在表上记下什么，听见你进门，抬起头笑了笑。",
   };
   const present = SEAT_ORDER.filter(c => active.has(c));
   return (
