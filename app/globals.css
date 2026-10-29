@@ -2678,3 +2678,28 @@ body {
 .garden-week-row { font-size: 15px; color: rgba(232,220,196,0.85); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .garden-week-dots { display: inline-flex; gap: 4px; }
 .garden-week-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+
+/* ---------- Garden: presence + greeting ---------- */
+.garden-presence { margin: 12px 0 0; font-size: 13px; letter-spacing: 0.06em; }
+.garden-greet {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(8,6,4,0.82);
+  backdrop-filter: blur(2px);
+  cursor: pointer;
+}
+.garden-greet-card {
+  max-width: 420px;
+  padding: 34px 38px;
+  text-align: center;
+  border: 1px solid rgba(217,154,78,0.25);
+  border-radius: 6px;
+  background: linear-gradient(160deg, rgba(26,20,14,0.92), rgba(16,12,9,0.95));
+}
+.garden-greet-card p { margin: 0 0 14px; font-size: 16px; line-height: 1.8; }
+.garden-greet-card p:first-child { font-size: 20px; letter-spacing: 0.2em; }
+.garden-greet-card p:last-child { margin: 6px 0 0; font-size: 12px; }

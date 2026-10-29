@@ -172,6 +172,7 @@ const ANSWERS_KEY = "room1913.garden.answers.v1";
 const OPTIMISM_KEY = "room1913.garden.optimism.v1";
 const STRENGTHS_KEY = "room1913.garden.strengths.v1";
 const LAMPSEEN_KEY = "room1913.garden.lampseen.v1";
+const GREETED_KEY = "room1913.garden.greeted.v1";
 
 const NAV = [
   { id: "week", zh: "本周" },
@@ -352,6 +353,10 @@ export default function Garden() {
   // --- lamp echo ---
   const [lampEcho, setLampEcho] = useState(0);
 
+  // --- presence + first-visit greeting ---
+  const [others, setOthers] = useState(0);
+  const [greeting, setGreeting] = useState(false);
+
   useEffect(() => {
     const id = getClientId();
     setClientId(id);
@@ -390,7 +395,27 @@ export default function Garden() {
       .then(r => r.json())
       .then(d => { if (Array.isArray(d.capsules)) setCapsules(d.capsules); })
       .catch(() => {});
+    try {
+      if (!localStorage.getItem(GREETED_KEY)) setGreeting(true);
+    } catch {}
+    const beat = () =>
+      fetch("/api/presence", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ clientId: id }),
+      })
+        .then(r => r.json())
+        .then(d => setOthers(Number(d.others) || 0))
+        .catch(() => {});
+    beat();
+    const t = setInterval(beat, 60_000);
+    return () => clearInterval(t);
   }, []);
+
+  const dismissGreeting = () => {
+    setGreeting(false);
+    try { localStorage.setItem(GREETED_KEY, "1"); } catch {}
+  };
 
   // --- anniversary: a note from a month (or a week) ago resurfaces ---
   const anniversary = (() => {
@@ -511,6 +536,11 @@ export default function Garden() {
           <p className="archive-stage-sub font-serif ink-fade">
             五个问题认识自己，一条好消息交换陌生的善意
           </p>
+          {others > 0 && (
+            <p className="garden-presence font-serif ink-fade">
+              今晚花园里还有 {others} 位访客。
+            </p>
+          )}
           <nav className="garden-nav" aria-label="garden sections">
             {NAV.map(n => (
               <a key={n.id} href={`#${n.id}`} className="garden-nav-item font-type">
@@ -1017,6 +1047,19 @@ export default function Garden() {
           <span className="window-quote-zh ink-fade font-serif">幸福不是无风无雨，而是一座被照料过的花园。</span>
         </p>
       </aside>
+
+      {greeting && (
+        <div className="garden-greet" onClick={dismissGreeting} role="dialog" aria-label="welcome">
+          <div className="garden-greet-card">
+            <p className="font-serif">这里是花园。</p>
+            <p className="font-serif ink-fade">
+              每天种下一条很小的好消息，它会换回另一位访客的一条；
+              睡前记下三件好事，油灯会越烧越亮。
+            </p>
+            <p className="font-serif ink-mute">（点击任意处进入）</p>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
