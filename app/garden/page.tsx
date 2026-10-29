@@ -162,8 +162,22 @@ function Lamp({ streak }: { streak: number }) {
   );
 }
 
+import Breathing from "../components/Breathing";
+
 const CLIENT_KEY = "room1913.garden.client.v1";
 const ANSWERS_KEY = "room1913.garden.answers.v1";
+const OPTIMISM_KEY = "room1913.garden.optimism.v1";
+const STRENGTHS_KEY = "room1913.garden.strengths.v1";
+
+const NAV = [
+  { id: "news", zh: "好消息" },
+  { id: "breath", zh: "呼吸" },
+  { id: "things", zh: "三件好事" },
+  { id: "optimism", zh: "乐观" },
+  { id: "strengths", zh: "优势" },
+  { id: "questions", zh: "五问" },
+  { id: "bottle", zh: "瓶中信" },
+];
 
 function getClientId(): string {
   try {
@@ -197,16 +211,33 @@ export default function Garden() {
   const [matchLit, setMatchLit] = useState(false);
 
   // --- optimism game ---
-  const [picks, setPicks] = useState<boolean[]>([]);
+  const [picks, setPicks] = useState<boolean[]>(() => {
+    try {
+      const v = JSON.parse(localStorage.getItem(OPTIMISM_KEY) ?? "[]");
+      return Array.isArray(v) ? v.filter(x => typeof x === "boolean") : [];
+    } catch { return []; }
+  });
   const gameDone = picks.length >= STYLE_ITEMS.length;
   const current = STYLE_ITEMS[picks.length];
   const result = scoreStyle(picks);
 
   // --- character strengths ---
-  const [strengthPicks, setStrengthPicks] = useState<Strength[]>([]);
+  const [strengthPicks, setStrengthPicks] = useState<Strength[]>(() => {
+    try {
+      const v = JSON.parse(localStorage.getItem(STRENGTHS_KEY) ?? "[]");
+      return Array.isArray(v) ? v : [];
+    } catch { return []; }
+  });
   const strengthsDone = strengthPicks.length >= STRENGTH_CARDS.length;
   const strengthCard = STRENGTH_CARDS[strengthPicks.length];
   const top3 = topStrengths(strengthPicks);
+
+  useEffect(() => {
+    try { localStorage.setItem(OPTIMISM_KEY, JSON.stringify(picks)); } catch {}
+  }, [picks]);
+  useEffect(() => {
+    try { localStorage.setItem(STRENGTHS_KEY, JSON.stringify(strengthPicks)); } catch {}
+  }, [strengthPicks]);
 
   // --- bottle post ---
   const [bottleText, setBottleText] = useState("");
@@ -326,10 +357,17 @@ export default function Garden() {
           <p className="archive-stage-sub font-serif ink-fade">
             五个问题认识自己，一条好消息交换陌生的善意
           </p>
+          <nav className="garden-nav" aria-label="garden sections">
+            {NAV.map(n => (
+              <a key={n.id} href={`#${n.id}`} className="garden-nav-item font-type">
+                {n.zh}
+              </a>
+            ))}
+          </nav>
         </header>
 
         {/* ----- daily good news ----- */}
-        <section className="garden-block">
+        <section className="garden-block" id="news">
           <h2 className="garden-block-title font-type">TODAY&apos;S GOOD NEWS · 今日好消息</h2>
 
           {mine ? (
@@ -403,8 +441,21 @@ export default function Garden() {
           )}
         </section>
 
+        {/* ----- breathing ----- */}
+        <section className="garden-block" id="breath">
+          <h2 className="garden-block-title font-type">BREATHING · 呼吸窗</h2>
+          <p className="garden-hint font-serif ink-fade" style={{ margin: "0 0 14px" }}>
+            4-7-8：吸气四拍，屏息七拍，呼气八拍。让房间暗下来，只剩雨声和一圈灯光。
+          </p>
+          <Breathing
+            onFinish={() =>
+              document.getElementById("news")?.scrollIntoView({ behavior: "smooth" })
+            }
+          />
+        </section>
+
         {/* ----- three good things ----- */}
-        <section className="garden-block">
+        <section className="garden-block" id="things">
           <h2 className="garden-block-title font-type">
             THREE GOOD THINGS · 今晚的三件好事
             <Lamp streak={streak} />
@@ -465,7 +516,7 @@ export default function Garden() {
         </section>
 
         {/* ----- optimism game ----- */}
-        <section className="garden-block">
+        <section className="garden-block" id="optimism">
           <h2 className="garden-block-title font-type">LEARNED OPTIMISM · 乐观解释风格</h2>
 
           {!gameDone && current ? (
@@ -524,7 +575,7 @@ export default function Garden() {
         </section>
 
         {/* ----- character strengths ----- */}
-        <section className="garden-block">
+        <section className="garden-block" id="strengths">
           <h2 className="garden-block-title font-type">SIGNATURE STRENGTHS · 品格优势</h2>
 
           {!strengthsDone && strengthCard ? (
@@ -579,7 +630,7 @@ export default function Garden() {
         </section>
 
         {/* ----- bottle post ----- */}
-        <section className="garden-block">
+        <section className="garden-block" id="bottle">
           <h2 className="garden-block-title font-type">BOTTLE POST · 瓶中信</h2>
           {bottleReceived === null ? (
             <div className="garden-share">
@@ -622,7 +673,7 @@ export default function Garden() {
         </section>
 
         {/* ----- five questions ----- */}
-        <section className="garden-block">
+        <section className="garden-block" id="questions">
           <h2 className="garden-block-title font-type">FIVE QUESTIONS · 认识自己的五个问题</h2>
           <ul className="garden-q-list">
             {FIVE_QUESTIONS.map((q, i) => (
