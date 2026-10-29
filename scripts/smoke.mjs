@@ -41,7 +41,7 @@ async function api(method, p, body) {
 }
 
 async function cleanup() {
-  for (const file of ["data/goodnews.json", "data/bottles.json"]) {
+  for (const file of ["data/goodnews.json", "data/bottles.json", "data/capsules.json", "data/presence.json"]) {
     try {
       const fp = path.resolve(file);
       const list = JSON.parse(await readFile(fp, "utf-8"));
@@ -120,6 +120,39 @@ await page("/garden", "GARDEN");
     clientId: CLIENT,
   });
   check("bottle washes one ashore", cast.json?.cast === true && !!cast.json?.received?.text);
+}
+
+// time capsule: validation, sealing, sealed view
+{
+  const bad = await api("POST", "/api/capsule", { text: "x", clientId: CLIENT, days: 7 });
+  check("capsule rejects odd horizons", bad.status === 400);
+
+  const sealed = await api("POST", "/api/capsule", {
+    text: "smoke: dear future self",
+    clientId: CLIENT,
+    days: 90,
+  });
+  check("capsule seals a letter", sealed.json?.sealed?.sealed === true);
+  check("capsule hides sealed text", sealed.json?.sealed?.text === undefined);
+
+  const got = await api("GET", `/api/capsule?clientId=${CLIENT}`);
+  check("capsule GET lists own capsules", got.json?.capsules?.length === 1 && got.json.capsules[0].sealed === true);
+
+  const notMine = await api("GET", `/api/capsule?clientId=${CLIENT}-other`);
+  check("capsule GET hides others' capsules", notMine.json?.capsules?.length === 0);
+}
+
+// presence: validation and window counting
+{
+  const bad = await api("POST", "/api/presence", {});
+  check("presence rejects missing clientId", bad.status === 400);
+
+  await api("POST", "/api/presence", { clientId: `${CLIENT}-a` });
+  const second = await api("POST", "/api/presence", { clientId: `${CLIENT}-b` });
+  check("presence counts the other visitor", second.json?.others >= 1);
+
+  const repeat = await api("POST", "/api/presence", { clientId: `${CLIENT}-b` });
+  check("presence dedupes repeated beats", repeat.json?.others === second.json?.others);
 }
 
 await cleanup();
