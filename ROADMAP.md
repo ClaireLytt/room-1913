@@ -34,10 +34,6 @@ presence become genuinely multi-visitor. Worth revisiting then:
 - **Seasons at the window** — the window scene's color temperature and
   the flowerbed's blossom shapes follow the real month.
 - **Year album** — stitch twelve month cards into one year view.
-- **Daily line on the door** — /home shows one line from the salon
-  corpus, rotating deterministically by date.
-- **Keyboard & screen-reader pass** — the garden's games are mouse-first;
-  a focus-order and aria audit is owed.
 - **English toggle** — the room is bilingual by flavor, not by switch.
 
 ## Principles to keep
