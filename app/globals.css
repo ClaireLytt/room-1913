@@ -2367,3 +2367,37 @@ body {
   transition: width 900ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 .garden-perma-score { font-size: 11px; text-align: right; color: rgba(217,154,78,0.8); }
+
+/* ---------- Garden: flowerbed + three good things ---------- */
+.garden-bed { margin-top: 22px; }
+.garden-bed-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  min-height: 60px;
+  padding: 0 10px;
+  flex-wrap: wrap;
+}
+.garden-flower { width: 24px; display: block; }
+.garden-bed-ground {
+  height: 2px;
+  margin-top: -1px;
+  border-radius: 1px;
+  background: linear-gradient(90deg, rgba(159,184,138,0.05), rgba(159,184,138,0.3), rgba(159,184,138,0.05));
+}
+.garden-lamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 14px;
+  vertical-align: middle;
+}
+.garden-lamp svg { width: 18px; height: 26px; }
+.garden-lamp-count { font-size: 11px; color: rgba(217,154,78,0.8); letter-spacing: 0.1em; }
+.garden-things-list { list-style: none; margin: 0 0 4px; padding: 0; display: flex; flex-direction: column; gap: 16px; width: 100%; }
+.garden-things-item { display: grid; grid-template-columns: 22px 1fr; gap: 10px; align-items: start; }
+.garden-things-item .garden-q-letter { padding-top: 10px; }
+.garden-things-fields { display: flex; flex-direction: column; gap: 8px; }
+.garden-things-why-input { font-size: 13px; opacity: 0.85; }
+.garden-things-done { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.garden-things-why { margin: 8px 0 0; font-size: 13px; }

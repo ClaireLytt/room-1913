@@ -10,6 +10,77 @@ import {
   GoodNews,
   scoreAnswer,
 } from "../lib/perma";
+import {
+  GoodThing,
+  GoodThingsEntry,
+  loadGoodThings,
+  saveEntry,
+  todayEntry,
+  streakOf,
+} from "../lib/goodthings";
+
+const PILLAR_COLOR: Record<Pillar, string> = {
+  positive: "#d99a4e",
+  engagement: "#c9b36a",
+  relationships: "#9fb88a",
+  meaning: "#b87a4a",
+  accomplishment: "#e0cfa8",
+};
+
+function Flower({ pillar, i }: { pillar: Pillar; i: number }) {
+  const color = PILLAR_COLOR[pillar];
+  const h = 34 + ((i * 7) % 18); // uneven heights, like a real bed
+  const sway = (i % 5) - 2;
+  return (
+    <svg
+      className="garden-flower"
+      viewBox="0 0 24 60"
+      style={{ height: `${h + 22}px` }}
+      aria-label={PILLAR_LABEL[pillar].zh}
+    >
+      <path
+        d={`M12 58 Q ${12 + sway} ${58 - h / 2} 12 ${58 - h}`}
+        stroke="rgba(159,184,138,0.55)"
+        strokeWidth="1.4"
+        fill="none"
+      />
+      <g transform={`translate(12 ${58 - h})`}>
+        {[0, 72, 144, 216, 288].map(a => (
+          <ellipse
+            key={a}
+            cx="0"
+            cy="-4.4"
+            rx="2.6"
+            ry="4.4"
+            fill={color}
+            opacity="0.82"
+            transform={`rotate(${a + sway * 4})`}
+          />
+        ))}
+        <circle r="2.2" fill="rgba(26,20,14,0.9)" stroke={color} strokeWidth="0.8" />
+      </g>
+    </svg>
+  );
+}
+
+function Lamp({ streak }: { streak: number }) {
+  // the longer the streak, the brighter the lamp burns
+  const glow = Math.min(1, 0.25 + streak * 0.12);
+  return (
+    <span className="garden-lamp" aria-label={`连续 ${streak} 天`}>
+      <svg viewBox="0 0 24 34" style={{ filter: `drop-shadow(0 0 ${4 + streak * 2}px rgba(217,154,78,${glow}))` }}>
+        <path d="M8 20h8l-1.5 10h-5Z" fill="none" stroke="rgba(217,154,78,0.6)" strokeWidth="1.2" />
+        <path
+          d="M12 6 C 15 10, 15.5 13, 12 17 C 8.5 13, 9 10, 12 6 Z"
+          fill={`rgba(217,154,78,${glow})`}
+          stroke="rgba(232,220,196,0.5)"
+          strokeWidth="0.6"
+        />
+      </svg>
+      <span className="garden-lamp-count font-type">{streak}</span>
+    </span>
+  );
+}
 
 const CLIENT_KEY = "room1913.garden.client.v1";
 const ANSWERS_KEY = "room1913.garden.answers.v1";
@@ -39,7 +110,16 @@ export default function Garden() {
   const [note, setNote] = useState("");
   const [mine, setMine] = useState<GoodNews | null>(null);
   const [match, setMatch] = useState<GoodNews | null>(null);
+  const [history, setHistory] = useState<GoodNews[]>([]);
   const [busy, setBusy] = useState(false);
+
+  // --- three good things ---
+  const [things, setThings] = useState<GoodThing[]>(
+    () => [0, 1, 2].map(() => ({ text: "", why: "" }))
+  );
+  const [entries, setEntries] = useState<GoodThingsEntry[]>([]);
+  const savedToday = todayEntry(entries);
+  const streak = streakOf(entries);
 
   useEffect(() => {
     const id = getClientId();
@@ -51,13 +131,24 @@ export default function Garden() {
         setAnswers(prev => ({ ...prev, ...parsed }));
       }
     } catch {}
+    setEntries(loadGoodThings());
     fetch(`/api/goodnews?clientId=${encodeURIComponent(id)}`)
       .then(r => r.json())
       .then(d => {
         if (d.mine) { setMine(d.mine); setMatch(d.match ?? null); }
+        if (Array.isArray(d.history)) setHistory(d.history);
       })
       .catch(() => {});
   }, []);
+
+  const setThing = (i: number, field: keyof GoodThing, v: string) => {
+    setThings(prev => prev.map((t, j) => (j === i ? { ...t, [field]: v } : t)));
+  };
+  const thingsComplete = things.every(t => t.text.trim().length > 0);
+  const saveThings = () => {
+    if (!thingsComplete) return;
+    setEntries(saveEntry(things.map(t => ({ text: t.text.trim(), why: t.why.trim() }))));
+  };
 
   const setAnswer = (p: Pillar, v: string) => {
     setAnswers(prev => {
@@ -83,7 +174,12 @@ export default function Garden() {
         body: JSON.stringify({ text, clientId }),
       });
       const d = await res.json();
-      if (d.mine) { setMine(d.mine); setMatch(d.match ?? null); setNote(""); }
+      if (d.mine) {
+        setMine(d.mine);
+        setMatch(d.match ?? null);
+        setNote("");
+        if (!d.already) setHistory(prev => [...prev, d.mine]);
+      }
     } catch {}
     setBusy(false);
   };
@@ -144,6 +240,80 @@ export default function Garden() {
                 disabled={!note.trim() || busy}
               >
                 {busy ? "SENDING…" : "SHARE · 放进花园"}
+              </button>
+            </div>
+          )}
+          {history.length > 0 && (
+            <div className="garden-bed">
+              <div className="garden-bed-row">
+                {history.map((n, i) => (
+                  <Flower key={n.id} pillar={n.pillar} i={i} />
+                ))}
+              </div>
+              <div className="garden-bed-ground" />
+              <p className="garden-hint font-serif ink-fade">
+                你的花坛 · 每一朵都是一条分享过的好消息
+              </p>
+            </div>
+          )}
+        </section>
+
+        {/* ----- three good things ----- */}
+        <section className="garden-block">
+          <h2 className="garden-block-title font-type">
+            THREE GOOD THINGS · 今晚的三件好事
+            <Lamp streak={streak} />
+          </h2>
+
+          {savedToday ? (
+            <div className="garden-exchange">
+              <ul className="garden-things-done">
+                {savedToday.items.map((t, i) => (
+                  <li key={i} className="garden-card">
+                    <p className="garden-card-tag font-type">NO. {i + 1}</p>
+                    <p className="garden-card-text font-serif">{t.text}</p>
+                    {t.why && (
+                      <p className="garden-things-why font-serif ink-fade">为什么会发生：{t.why}</p>
+                    )}
+                  </li>
+                ))}
+              </ul>
+              <p className="garden-hint font-serif ink-fade">
+                已记下，油灯为你亮着——连续 {streak} 天。
+              </p>
+            </div>
+          ) : (
+            <div className="garden-share">
+              <p className="garden-hint font-serif ink-fade" style={{ margin: "0 0 14px" }}>
+                睡前写下今天的三件好事，以及它们为什么会发生。
+              </p>
+              <ul className="garden-things-list">
+                {things.map((t, i) => (
+                  <li key={i} className="garden-things-item">
+                    <span className="garden-q-letter font-type">{i + 1}</span>
+                    <div className="garden-things-fields">
+                      <input
+                        className="garden-input font-serif"
+                        value={t.text}
+                        onChange={e => setThing(i, "text", e.target.value)}
+                        placeholder="发生了什么好事"
+                      />
+                      <input
+                        className="garden-input font-serif garden-things-why-input"
+                        value={t.why}
+                        onChange={e => setThing(i, "why", e.target.value)}
+                        placeholder="它为什么会发生（可留空）"
+                      />
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              <button
+                className="garden-btn font-type"
+                onClick={saveThings}
+                disabled={!thingsComplete}
+              >
+                KEEP · 记下这三件
               </button>
             </div>
           )}

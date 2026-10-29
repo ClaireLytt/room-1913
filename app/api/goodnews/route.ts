@@ -57,11 +57,12 @@ export async function GET(req: Request) {
   const clientId = (url.searchParams.get("clientId") ?? "").slice(0, 64);
   const list = await loadStore();
   const today = todayKey();
-  const mine = clientId
-    ? list.find(n => n.clientId === clientId && n.day === today) ?? null
-    : null;
+  const history = clientId
+    ? list.filter(n => n.clientId === clientId).sort((a, b) => a.createdAt - b.createdAt)
+    : [];
+  const mine = history.find(n => n.day === today) ?? null;
   const match = mine ? findMatch(list, mine.pillar, clientId) : null;
-  return NextResponse.json({ today, mine, match });
+  return NextResponse.json({ today, mine, match, history });
 }
 
 export async function POST(req: Request) {
