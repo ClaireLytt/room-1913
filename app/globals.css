@@ -2461,3 +2461,51 @@ body {
   background: rgba(217,154,78,0.16);
   box-shadow: 0 0 14px rgba(217,154,78,0.25);
 }
+
+/* ---------- Garden: good-news calendar ---------- */
+.garden-cal { margin-top: 20px; }
+.garden-cal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 320px;
+  margin-bottom: 8px;
+}
+.garden-cal-title { font-size: 11px; letter-spacing: 0.2em; color: rgba(217,154,78,0.7); }
+.garden-cal-nav {
+  padding: 2px 10px;
+  font-size: 13px;
+  color: rgba(232,220,196,0.5);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+.garden-cal-nav:hover { color: rgba(232,220,196,0.9); }
+.garden-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 40px);
+  gap: 2px;
+  max-width: 320px;
+}
+.garden-cal-weekday {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-align: center;
+  padding: 4px 0;
+  color: rgba(232,220,196,0.35);
+}
+.garden-cal-day {
+  height: 34px;
+  font-size: 10px;
+  color: rgba(232,220,196,0.3);
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 4px;
+}
+.garden-cal-day-bloom {
+  font-size: 15px;
+  cursor: pointer;
+  transition: border-color 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.garden-cal-day-bloom:hover { border-color: rgba(217,154,78,0.4); }
+.garden-cal-day-on { border-color: rgba(217,154,78,0.6); background: rgba(217,154,78,0.08); }

@@ -25,6 +25,79 @@ import {
   scoreStyle,
   styleVerdict,
 } from "../lib/optimism";
+import {
+  Strength,
+  STRENGTH_CARDS,
+  STRENGTH_LABEL,
+  topStrengths,
+} from "../lib/strengths";
+
+const WEEKDAYS = ["一", "二", "三", "四", "五", "六", "日"];
+
+function Calendar({ history }: { history: GoodNews[] }) {
+  const now = new Date();
+  const [year, setYear] = useState(now.getFullYear());
+  const [month, setMonth] = useState(now.getMonth()); // 0-based
+  const [picked, setPicked] = useState<GoodNews | null>(null);
+
+  const byDay = new Map<string, GoodNews>();
+  for (const n of history) byDay.set(n.day, n);
+
+  const first = new Date(year, month, 1);
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const lead = (first.getDay() + 6) % 7; // Monday-first
+  const cells: (number | null)[] = [
+    ...Array.from({ length: lead }, () => null),
+    ...Array.from({ length: daysInMonth }, (_, i) => i + 1),
+  ];
+  const key = (d: number) =>
+    `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+
+  const shift = (delta: number) => {
+    const m = new Date(year, month + delta, 1);
+    setYear(m.getFullYear());
+    setMonth(m.getMonth());
+    setPicked(null);
+  };
+
+  return (
+    <div className="garden-cal">
+      <div className="garden-cal-head">
+        <button className="garden-cal-nav font-type" onClick={() => shift(-1)}>‹</button>
+        <span className="garden-cal-title font-type">{year} · {month + 1}月</span>
+        <button className="garden-cal-nav font-type" onClick={() => shift(1)}>›</button>
+      </div>
+      <div className="garden-cal-grid">
+        {WEEKDAYS.map(w => (
+          <span key={w} className="garden-cal-weekday font-type">{w}</span>
+        ))}
+        {cells.map((d, i) => {
+          if (d === null) return <span key={`x${i}`} />;
+          const note = byDay.get(key(d));
+          return (
+            <button
+              key={d}
+              className={`garden-cal-day font-type ${note ? "garden-cal-day-bloom" : ""} ${picked && note === picked ? "garden-cal-day-on" : ""}`}
+              style={note ? { color: PILLAR_COLOR[note.pillar] } : undefined}
+              onClick={() => note && setPicked(picked === note ? null : note)}
+              disabled={!note}
+            >
+              {note ? "✻" : d}
+            </button>
+          );
+        })}
+      </div>
+      {picked && (
+        <div className="garden-card" style={{ marginTop: "12px" }}>
+          <p className="garden-card-tag font-type">
+            {picked.day} · {PILLAR_LABEL[picked.pillar].letter} {PILLAR_LABEL[picked.pillar].zh}
+          </p>
+          <p className="garden-card-text font-serif">“{picked.text}”</p>
+        </div>
+      )}
+    </div>
+  );
+}
 
 const PILLAR_COLOR: Record<Pillar, string> = {
   positive: "#d99a4e",
@@ -128,6 +201,12 @@ export default function Garden() {
   const gameDone = picks.length >= STYLE_ITEMS.length;
   const current = STYLE_ITEMS[picks.length];
   const result = scoreStyle(picks);
+
+  // --- character strengths ---
+  const [strengthPicks, setStrengthPicks] = useState<Strength[]>([]);
+  const strengthsDone = strengthPicks.length >= STRENGTH_CARDS.length;
+  const strengthCard = STRENGTH_CARDS[strengthPicks.length];
+  const top3 = topStrengths(strengthPicks);
 
   // --- three good things ---
   const [things, setThings] = useState<GoodThing[]>(
@@ -295,6 +374,7 @@ export default function Garden() {
               <p className="garden-hint font-serif ink-fade">
                 你的花坛 · 每一朵都是一条分享过的好消息
               </p>
+              <Calendar history={history} />
             </div>
           )}
         </section>
@@ -414,6 +494,61 @@ export default function Garden() {
               </p>
               <button className="garden-btn font-type" onClick={() => setPicks([])}>
                 AGAIN · 再来一轮
+              </button>
+            </div>
+          )}
+        </section>
+
+        {/* ----- character strengths ----- */}
+        <section className="garden-block">
+          <h2 className="garden-block-title font-type">SIGNATURE STRENGTHS · 品格优势</h2>
+
+          {!strengthsDone && strengthCard ? (
+            <div className="garden-game">
+              <p className="garden-game-progress font-type">
+                {strengthPicks.length + 1} / {STRENGTH_CARDS.length}
+              </p>
+              <p className="garden-hint font-serif ink-fade">哪一句更像你？</p>
+              <div className="garden-game-options">
+                <button
+                  className="garden-game-option font-serif"
+                  onClick={() => setStrengthPicks(prev => [...prev, strengthCard.a.strength])}
+                >
+                  {strengthCard.a.text}
+                </button>
+                <button
+                  className="garden-game-option font-serif"
+                  onClick={() => setStrengthPicks(prev => [...prev, strengthCard.b.strength])}
+                >
+                  {strengthCard.b.text}
+                </button>
+              </div>
+              {strengthPicks.length > 0 && (
+                <button
+                  className="garden-game-back font-type"
+                  onClick={() => setStrengthPicks(prev => prev.slice(0, -1))}
+                >
+                  ‹ 上一题
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="garden-exchange">
+              {top3.map((t, i) => (
+                <div key={t.strength} className="garden-card">
+                  <p className="garden-card-tag font-type">
+                    NO. {i + 1} · {STRENGTH_LABEL[t.strength].zh}
+                  </p>
+                  <p className="garden-card-text font-serif">
+                    {STRENGTH_LABEL[t.strength].desc}
+                  </p>
+                </div>
+              ))}
+              <p className="garden-hint font-serif ink-fade">
+                这是你的签名优势——塞利格曼说，幸福不在修补短板，而在把它们用在每一天。
+              </p>
+              <button className="garden-btn font-type" onClick={() => setStrengthPicks([])}>
+                AGAIN · 再测一次
               </button>
             </div>
           )}
