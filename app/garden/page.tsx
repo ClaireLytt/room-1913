@@ -168,6 +168,7 @@ const CLIENT_KEY = "room1913.garden.client.v1";
 const ANSWERS_KEY = "room1913.garden.answers.v1";
 const OPTIMISM_KEY = "room1913.garden.optimism.v1";
 const STRENGTHS_KEY = "room1913.garden.strengths.v1";
+const LAMPSEEN_KEY = "room1913.garden.lampseen.v1";
 
 const NAV = [
   { id: "news", zh: "好消息" },
@@ -190,6 +191,40 @@ function getClientId(): string {
   } catch {
     return "anonymous";
   }
+}
+
+function PastNights({
+  entries,
+  open,
+  toggle,
+}: {
+  entries: GoodThingsEntry[];
+  open: boolean;
+  toggle: () => void;
+}) {
+  if (!entries.length) return null;
+  return (
+    <div className="garden-past">
+      <button className="garden-game-back font-type" onClick={toggle}>
+        {open ? "‹ 收起往夜的记录" : `往夜的记录 · ${entries.length} 晚 ›`}
+      </button>
+      {open && (
+        <ul className="garden-past-list">
+          {entries.map(e => (
+            <li key={e.day} className="garden-card">
+              <p className="garden-card-tag font-type">{e.day}</p>
+              {e.items.map((t, i) => (
+                <p key={i} className="garden-past-line font-serif">
+                  {t.text}
+                  {t.why ? <span className="ink-fade"> —— {t.why}</span> : null}
+                </p>
+              ))}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
 }
 
 export default function Garden() {
@@ -246,6 +281,13 @@ export default function Garden() {
   const [entries, setEntries] = useState<GoodThingsEntry[]>([]);
   const savedToday = todayEntry(entries);
   const streak = streakOf(entries);
+  const pastEntries = entries
+    .filter(e => e !== savedToday)
+    .sort((a, b) => b.createdAt - a.createdAt);
+  const [showPast, setShowPast] = useState(false);
+
+  // --- lamp echo ---
+  const [lampEcho, setLampEcho] = useState(0);
 
   useEffect(() => {
     const id = getClientId();
@@ -268,7 +310,17 @@ export default function Garden() {
       .then(r => r.json())
       .then(d => {
         if (d.mine) { setMine(d.mine); setMatch(d.match ?? null); }
-        if (Array.isArray(d.history)) setHistory(d.history);
+        if (Array.isArray(d.history)) {
+          setHistory(d.history);
+          const lit = d.history.reduce(
+            (n: number, g: GoodNews) => n + (g.litBy?.length ?? 0), 0
+          );
+          try {
+            const seen = Number(localStorage.getItem(LAMPSEEN_KEY) ?? "0");
+            if (lit > seen) setLampEcho(lit - seen);
+            localStorage.setItem(LAMPSEEN_KEY, String(lit));
+          } catch {}
+        }
       })
       .catch(() => {});
   }, []);
@@ -365,6 +417,11 @@ export default function Garden() {
               </a>
             ))}
           </nav>
+          {lampEcho > 0 && (
+            <p className="garden-echo font-serif">
+              你不在的时候，有人为你的好消息点亮了 {lampEcho} 盏灯。
+            </p>
+          )}
         </header>
 
         {/* ----- daily good news ----- */}
@@ -478,6 +535,7 @@ export default function Garden() {
               <p className="garden-hint font-serif ink-fade">
                 已记下，油灯为你亮着——连续 {streak} 天。
               </p>
+              <PastNights entries={pastEntries} open={showPast} toggle={() => setShowPast(v => !v)} />
             </div>
           ) : (
             <div className="garden-share">
@@ -512,6 +570,7 @@ export default function Garden() {
               >
                 KEEP · 记下这三件
               </button>
+              <PastNights entries={pastEntries} open={showPast} toggle={() => setShowPast(v => !v)} />
             </div>
           )}
         </section>

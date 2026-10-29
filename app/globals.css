@@ -2618,3 +2618,14 @@ body {
 .breath-done { display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; padding: 0 24px; }
 .breath-done-actions { display: flex; gap: 14px; align-items: center; margin-top: 8px; }
 .breath-done-actions .garden-btn { margin-top: 0; }
+
+/* ---------- Garden: lamp echo + past nights ---------- */
+.garden-echo {
+  margin: 14px 0 0;
+  font-size: 14px;
+  color: rgba(217,154,78,0.85);
+  text-shadow: 0 0 12px rgba(217,154,78,0.25);
+}
+.garden-past { margin-top: 16px; width: 100%; }
+.garden-past-list { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.garden-past-line { margin: 4px 0 0; font-size: 14px; line-height: 1.7; color: rgba(232,220,196,0.82); }
