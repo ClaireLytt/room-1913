@@ -31,8 +31,6 @@ presence become genuinely multi-visitor. Worth revisiting then:
 
 ## Next-PR candidates (deterministic, designed but not built)
 
-- **Seasons at the window** — the window scene's color temperature and
-  the flowerbed's blossom shapes follow the real month.
 - **Year album** — stitch twelve month cards into one year view.
 - **English toggle** — the room is bilingual by flavor, not by switch.
 
