@@ -11,6 +11,7 @@ import {
   type DerivedPoint,
 } from "../lib/dimensions";
 import { CHARACTERS, type CharacterId } from "../characters";
+import GardenLight from "./GardenLight";
 
 const PRIMARY_COLOR: Record<CharacterId, string> = {
   freud: "rgba(217,154,78,0.95)",
@@ -74,6 +75,8 @@ export default function MapShell() {
       </div>
 
       <EventTimeline records={records} hover={hover} setHover={setHover} />
+
+      <GardenLight />
     </section>
   );
 }

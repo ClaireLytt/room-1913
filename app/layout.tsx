@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import GlobalAtmosphere from "./components/GlobalAtmosphere";
+import GardenWarmth from "./components/GardenWarmth";
 import VinylPlayer from "./components/VinylPlayer";
 import { Analytics } from "@vercel/analytics/next";
 
@@ -14,6 +15,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className="grain">
         <GlobalAtmosphere />
+        <GardenWarmth />
         <div className="app-shell">{children}</div>
         <VinylPlayer />
         <Analytics />
